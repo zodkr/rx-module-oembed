@@ -37,6 +37,8 @@ class EventHandlers extends Base
     }
 
     $modulePath = '/modules/oembed/';
+    $skin = ConfigModel::getSkin();
+    $skinCssPath = $modulePath . 'skins/' . $skin . '/card.css';
 
     if ($isWriteAct) {
       $mid = Context::get('mid');
@@ -56,6 +58,9 @@ class EventHandlers extends Base
         return;
       }
       Context::addCssFile($modulePath . 'tpl/css/card.css');
+      if (is_file(\RX_BASEDIR . ltrim($skinCssPath, '/'))) {
+        Context::addCssFile($skinCssPath);
+      }
       Context::addJsFile($modulePath . 'tpl/js/_ckeditor.js', '', '', 0, 'body');
       Context::addHtmlHeader('<script>window.current_mid=' . json_encode((string) $mid) . ';</script>');
       return;
@@ -63,6 +68,9 @@ class EventHandlers extends Base
 
     // VIEW_ACTS — 본문에 카드/임베드 마크업이 노출되는 페이지
     Context::addCssFile($modulePath . 'tpl/css/card.css');
+    if (is_file(\RX_BASEDIR . ltrim($skinCssPath, '/'))) {
+      Context::addCssFile($skinCssPath);
+    }
     if (ConfigModel::isCompatibleMode()) {
       Context::addJsFile($modulePath . 'tpl/js/_render.js', '', '', 0, 'body');
     }
