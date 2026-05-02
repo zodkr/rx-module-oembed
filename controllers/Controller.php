@@ -97,34 +97,6 @@ class Controller extends Base
     $this->add('url', $url);
   }
 
-  public function procOembedAttachImage()
-  {
-    // v0.2.0 — OG 카드 흐름에서 OG 이미지를 첨부 파일로 변환할 때 사용.
-  }
-
-  public function procOembedTempImageDelete()
-  {
-  }
-
-  public function procOembedFileDownload()
-  {
-  }
-
-  public function procPreviewImageFileInfo()
-  {
-    return $this->procOembedAttachImage();
-  }
-
-  public function procPreviewImageTempFileDelete()
-  {
-    return $this->procOembedTempImageDelete();
-  }
-
-  public function procPreviewFileDownload()
-  {
-    return $this->procOembedFileDownload();
-  }
-
   private function shortName(Provider $provider): string
   {
     $class = get_class($provider);

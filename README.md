@@ -2,9 +2,9 @@
 
 Rhymix 용 oEmbed 모듈. CKEditor 4 에서 사용자가 URL 을 붙여넣으면 자동으로
 **임베드(iframe/blockquote/oEmbed)** 또는 **Open Graph 미리보기 카드** 로 변환합니다.
-기존 `preview` 모듈을 완전히 대체하는 것을 목표로 설계되었으며, 외부 액션 시그니처
-(`dispPreviewCard` 등)와 마크업(`preview_card_*`)을 그대로 흡수해 마이그레이션
-부담을 최소화합니다.
+기존 `preview` 모듈을 대체할 수 있도록 설계되었으며, preview 시절 게시물에 저장된
+카드(`preview_card_*`) / 임베드(`media_embed_wrapper`) 마크업을 호환 모드에서
+그대로 출력해 마이그레이션 후에도 게시물이 깨지지 않도록 합니다.
 
 ## 주요 특징
 
@@ -20,8 +20,10 @@ Rhymix 용 oEmbed 모듈. CKEditor 4 에서 사용자가 URL 을 붙여넣으면
   승인이 필요한 호스트 목록을 보여주고, 운영자가 시스템 → 설정 → 보안 →
   외부 멀티미디어 허용에서 직접 등록합니다. 등록 전까지 본문 출력 시
   iframe 이 차단됩니다.
-- **preview 호환** — `dispPreviewCard` / `dispPreviewIframe` 등 외부 액션과
-  `preview_card_*` 마크업을 그대로 응답해 외부 캐시·이메일 링크가 깨지지 않게 함.
+- **preview 게시물 호환** — 호환 모드 ON 시 preview 시절에 저장된
+  `preview_card_*` / `media_embed_wrapper` 마크업을 게시물 읽기 화면에서
+  같은 모양으로 출력하고, 인스타그램·페이스북·imgur 임베드의 SDK 도 자동
+  로드합니다. 새 사이트라면 꺼두어도 됩니다.
 
 ## 설치
 
@@ -102,7 +104,7 @@ CKEditor 4 외 에디터(예: Draft.js, Quill, TinyMCE 등)에서도
 
 | 버전 | 범위 |
 | --- | --- |
-| **v0.1.0** | 모듈 골격, AbstractProvider, Registry, Youtube, procOembedFetch (embed), CKEditor JS, 에디터 컴포넌트, preview 액션 별칭, 어드민 빈 화면 |
+| **v0.1.0** | 모듈 골격, AbstractProvider, Registry, Youtube, procOembedFetch (embed), CKEditor JS, 에디터 컴포넌트, preview 충돌 검사, 어드민 빈 화면 |
 | **v0.2.0** | OG 파서, RemoteFetcher (SSRF 가드), CardRenderer, ImageAttacher, 카드 흐름 |
 | **v0.3.0** | Facebook / Instagram / Imgur Provider |
 | **v0.4.0** | 어드민 UI 강화 (Provider 캐시 새로고침, 호스트 whitelist 상태 배지, 미등록 호스트 종합 안내, preview 비활성화 가이드). iframe whitelist 자동 등록 제거 — 명시적 승인 정책 도입 |

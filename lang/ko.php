@@ -5,7 +5,7 @@ $lang->cmd_oembed_general_config = '기본 설정';
 $lang->cmd_oembed_providers = 'Provider 관리';
 
 $lang->oembed_compatible_mode = 'preview 모듈 호환';
-$lang->oembed_compatible_mode_desc = 'preview 모듈로 작성해 두었던 기존 게시물의 카드와 임베드를 그대로 표시합니다. preview 시절 본문에 저장된 <code>preview_card_*</code>·<code>media_embed_wrapper</code> 마크업을 같은 클래스명으로 출력하고, 외부 캐시·이메일에서 들어오는 <code>dispPreviewCard</code> 같은 호출도 oembed 가 받아 처리합니다. preview 모듈을 사용한 적 없는 새 사이트라면 꺼두셔도 됩니다.';
+$lang->oembed_compatible_mode_desc = 'preview 모듈로 작성해 두었던 기존 게시물의 카드와 임베드를 그대로 표시합니다. 본문에 저장된 <code>preview_card_*</code>·<code>media_embed_wrapper</code> 마크업이 같은 모양으로 보이도록 게시물 읽기 화면에서 호환 스타일과 후처리 스크립트(인스타그램·페이스북·imgur SDK 자동 로드, lazy iframe 활성화) 를 함께 적용합니다. preview 모듈을 사용한 적 없는 새 사이트라면 꺼두셔도 됩니다.';
 
 $lang->oembed_provider_name = 'Provider';
 $lang->oembed_provider_type = '유형';
@@ -17,7 +17,7 @@ $lang->oembed_provider_enabled = '사용';
 $lang->oembed_provider_type_multimedia = '멀티미디어';
 $lang->oembed_provider_type_social = 'SNS';
 
-$lang->oembed_preview_active_warning = 'preview 모듈이 함께 설치되어 있습니다. 두 모듈이 같은 액션을 동시에 처리하려 해 충돌이 일어나므로, 시스템 → 모듈 관리에서 preview 모듈을 제거해 주세요.';
+$lang->oembed_preview_active_warning = 'preview 모듈이 함께 설치되어 있습니다. 두 모듈이 글쓰기 페이지에서 동시에 paste 를 처리하려 해 임베드가 중복되거나 어긋날 수 있으니, 시스템 → 모듈 관리에서 preview 모듈을 제거해 주세요.';
 
 $lang->oembed_refresh_providers = 'Provider 목록 다시 불러오기';
 $lang->oembed_refresh_providers_desc = '새 Provider 파일을 추가했을 때 캐시 갱신을 위해 사용해주세요.';
@@ -30,4 +30,4 @@ $lang->oembed_missing_hosts_intro = '아래 호스트가 <strong>외부 멀티�
 $lang->oembed_open_security_config = '시스템 보안 설정 열기';
 
 $lang->oembed_preview_disable_guide_title = 'preview 모듈을 제거하는 방법';
-$lang->oembed_preview_disable_guide_steps = '<ol><li>관리자 화면 왼쪽 메뉴에서 시스템 → 모듈 관리로 이동합니다.</li><li>설치된 모듈 목록에서 <strong>링크 프리뷰 (preview)</strong> 를 찾아 오른쪽 <strong>제거</strong> 버튼을 누릅니다.</li><li>제거하셔도 oembed 가 preview 의 액션(<code>dispPreviewCard</code> 등)을 그대로 받아 처리하므로, 외부 캐시·이메일·다른 사이트에서 들어오는 링크는 끊어지지 않습니다.</li><li>이미 작성된 게시물의 <code>preview_card_*</code> 마크업도 oembed 가 같은 클래스명으로 출력하므로 디자인이 그대로 유지됩니다 (<em>호환 모드</em> 가 켜져 있을 때).</li></ol>';
+$lang->oembed_preview_disable_guide_steps = '<ol><li>관리자 화면 왼쪽 메뉴에서 시스템 → 모듈 관리로 이동합니다.</li><li>설치된 모듈 목록에서 <strong>링크 프리뷰 (preview)</strong> 를 찾아 오른쪽 <strong>제거</strong> 버튼을 누릅니다.</li><li>이미 작성된 게시물의 <code>preview_card_*</code> 카드와 <code>media_embed_wrapper</code> 임베드는 <em>호환 모드</em> 가 켜져 있을 때 oembed 가 같은 모양으로 출력하므로 게시물이 깨지지 않습니다.</li></ol>';
