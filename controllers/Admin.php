@@ -35,7 +35,7 @@ class Admin extends Base
     $act = Context::get('act');
 
     if ($act === 'dispOembedAdminConfig') {
-      $config->compatible_mode = $vars->compatible_mode === 'N' ? 'N' : 'Y';
+      $config->compatible_mode = (($vars->compatible_mode ?? 'N') === 'Y') ? 'Y' : 'N';
     } elseif ($act === 'dispOembedAdminProviders') {
       $disabled = is_array($vars->disabled_providers ?? null) ? $vars->disabled_providers : [];
       $config->disabled_providers = array_values(array_filter(array_map('strval', $disabled)));
