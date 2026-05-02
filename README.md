@@ -8,8 +8,8 @@ Rhymix 용 oEmbed 모듈. CKEditor 4 에서 사용자가 URL 을 붙여넣으면
 
 ## 주요 특징
 
-- **PHP 파일 한 개로 새 서비스 추가** — `providers/{Name}.php` 한 파일을 떨어뜨리면
-  소스 변경/빌드 없이 즉시 등록됩니다.
+- **PHP 파일 한 개로 새 서비스 추가** — `providers/{Name}.php` 파일 하나만 추가하면
+  소스 변경이나 빌드 없이 즉시 등록됩니다.
 - **기본 Provider 4종** — YouTube, Facebook, Instagram, Imgur (Meta 토큰 불필요).
 - **Open Graph 카드 자동 생성** — 매칭되는 provider 가 없는 URL 은 OG/Twitter Card
   메타를 추출해 미리보기 카드로 변환합니다.
@@ -41,7 +41,7 @@ git clone -b dev https://github.com/zodkr/rx-module-oembed.git modules/oembed
 
 ## 새 Provider 추가
 
-`modules/oembed/providers/` 디렉터리에 PHP 파일 하나만 떨어뜨리면 됩니다.
+`modules/oembed/providers/` 디렉터리에 PHP 파일 하나만 추가하면 됩니다.
 
 ```php
 // modules/oembed/providers/Vimeo.php

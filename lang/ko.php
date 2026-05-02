@@ -19,8 +19,8 @@ $lang->oembed_provider_type_social = 'SNS';
 
 $lang->oembed_preview_active_warning = 'preview 모듈이 활성화되어 있습니다. oembed 모듈과 동시에 활성화하면 두 모듈이 동일한 액션을 처리하려고 시도해 충돌합니다. 시스템 → 모듈 관리 화면에서 preview 모듈을 비활성화한 뒤 다시 시도해 주세요.';
 
-$lang->oembed_refresh_providers = 'Provider 캐시 새로고침';
-$lang->oembed_refresh_providers_desc = 'providers/ 디렉터리에 새 PHP 파일을 떨어뜨린 뒤 즉시 반영하려면 누르세요.';
+$lang->oembed_refresh_providers = 'Provider 목록 다시 불러오기';
+$lang->oembed_refresh_providers_desc = 'providers/ 폴더에 Provider 파일을 추가했을 때 사용합니다.';
 $lang->oembed_providers_help = '체크된 provider 만 활성화됩니다. 체크 해제된 provider 는 paste 시점에 매칭에서 제외됩니다.';
 $lang->oembed_host_whitelisted = '시스템 보안 설정의 외부 멀티미디어 허용 목록에 등록되어 있습니다.';
 $lang->oembed_host_not_whitelisted = '아직 허용되지 않았습니다. 시스템 → 설정 → 보안 → 외부 멀티미디어 허용 화면에서 직접 추가해야 본문 출력 시 임베드가 표시됩니다.';

@@ -19,8 +19,8 @@ $lang->oembed_provider_type_social = 'Social';
 
 $lang->oembed_preview_active_warning = 'The preview module is currently active. Running both preview and oembed at the same time causes both modules to handle the same actions and conflicts. Please disable the preview module from System → Module management before retrying.';
 
-$lang->oembed_refresh_providers = 'Refresh provider cache';
-$lang->oembed_refresh_providers_desc = 'Click after dropping a new PHP file into providers/ to apply changes immediately.';
+$lang->oembed_refresh_providers = 'Reload provider list';
+$lang->oembed_refresh_providers_desc = 'Use this after adding a new provider file under providers/.';
 $lang->oembed_providers_help = 'Only checked providers are enabled. Unchecked providers are skipped at paste time.';
 $lang->oembed_host_whitelisted = 'Allowed in System → Security → External media whitelist.';
 $lang->oembed_host_not_whitelisted = 'Not yet allowed. Add it manually under System → Security → External media whitelist; otherwise embedded iframes will be filtered out at render time.';
