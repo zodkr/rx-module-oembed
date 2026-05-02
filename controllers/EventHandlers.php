@@ -2,16 +2,26 @@
 
 namespace Rhymix\Modules\Oembed\Controllers;
 
+use Rhymix\Modules\Oembed\Models\Config as ConfigModel;
 use Context;
 use EditorModel;
 use ModuleModel;
 
 class EventHandlers extends Base
 {
+  private const WRITE_ACTS = [
+    'dispBoardWrite', 'dispBoardWriteComment', 'dispBoardReplyComment', 'dispBoardModifyComment',
+  ];
+  private const VIEW_ACTS = [
+    'dispBoardContent', 'dispDocumentPrint', 'dispDocumentPreview', 'dispTrashAdminView',
+  ];
+
   /**
-   * before display 트리거. CKEditor 가 사용되는 페이지에서만 oembed 의 paste 훅
-   * JS/CSS 를 주입한다. preview 모듈의 triggerPreviewAction 과 동등한 역할이며,
-   * preview 가 비활성화되어도 oembed 만으로 paste 변환이 동작하도록 보장한다.
+   * before display 트리거.
+   *
+   * 글쓰기/댓글 페이지에서는 paste 훅(_ckeditor.js) 을, 글 보기 페이지에서는
+   * 호환 모드 ON 일 때 레거시 임베드 후처리(_render.js) 를 주입한다.
+   * card.css 는 두 그룹 모두 항상 로드한다.
    */
   public function injectEditorAssets(&$content)
   {
@@ -19,39 +29,42 @@ class EventHandlers extends Base
       return;
     }
 
-    $allowedActs = [
-      'dispBoardWrite', 'dispBoardWriteComment', 'dispBoardReplyComment', 'dispBoardModifyComment',
-      'dispBoardContent',
-    ];
     $act = Context::get('act');
-    if (!in_array($act, $allowedActs, true)) {
-      return;
-    }
-
-    $mid = Context::get('mid');
-    if (!$mid) {
-      return;
-    }
-
-    $moduleInfo = ModuleModel::getModuleInfoByMid($mid);
-    $moduleSrl = isset($moduleInfo->module_srl) ? (int) $moduleInfo->module_srl : 0;
-    if (!$moduleSrl) {
-      return;
-    }
-
-    $editorConfig = EditorModel::getEditorConfig($moduleSrl);
-    $isWriteAct = in_array($act, ['dispBoardWrite', 'dispBoardWriteComment', 'dispBoardReplyComment', 'dispBoardModifyComment'], true);
-    $editorSkin = $isWriteAct
-      ? ($act === 'dispBoardWrite' ? ($editorConfig->editor_skin ?? '') : ($editorConfig->comment_editor_skin ?? ''))
-      : ($editorConfig->comment_editor_skin ?? '');
-    if ($editorSkin !== 'ckeditor') {
+    $isWriteAct = in_array($act, self::WRITE_ACTS, true);
+    $isViewAct = in_array($act, self::VIEW_ACTS, true);
+    if (!$isWriteAct && !$isViewAct) {
       return;
     }
 
     $modulePath = '/modules/oembed/';
-    Context::addCssFile($modulePath . 'tpl/css/card.css');
-    Context::addJsFile($modulePath . 'tpl/js/_ckeditor.js', '', '', 0, 'body');
 
-    Context::addHtmlHeader('<script>window.current_mid=' . json_encode((string) $mid) . ';</script>');
+    if ($isWriteAct) {
+      $mid = Context::get('mid');
+      if (!$mid) {
+        return;
+      }
+      $moduleInfo = ModuleModel::getModuleInfoByMid($mid);
+      $moduleSrl = isset($moduleInfo->module_srl) ? (int) $moduleInfo->module_srl : 0;
+      if (!$moduleSrl) {
+        return;
+      }
+      $editorConfig = EditorModel::getEditorConfig($moduleSrl);
+      $editorSkin = $act === 'dispBoardWrite'
+        ? ($editorConfig->editor_skin ?? '')
+        : ($editorConfig->comment_editor_skin ?? '');
+      if ($editorSkin !== 'ckeditor') {
+        return;
+      }
+      Context::addCssFile($modulePath . 'tpl/css/card.css');
+      Context::addJsFile($modulePath . 'tpl/js/_ckeditor.js', '', '', 0, 'body');
+      Context::addHtmlHeader('<script>window.current_mid=' . json_encode((string) $mid) . ';</script>');
+      return;
+    }
+
+    // VIEW_ACTS — 본문에 카드/임베드 마크업이 노출되는 페이지
+    Context::addCssFile($modulePath . 'tpl/css/card.css');
+    if (ConfigModel::isCompatibleMode()) {
+      Context::addJsFile($modulePath . 'tpl/js/_render.js', '', '', 0, 'body');
+    }
   }
 }
