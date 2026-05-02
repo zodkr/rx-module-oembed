@@ -149,7 +149,7 @@
     evt.data.dataValue = placeholderHtml(url);
 
     fetchOembed(url).then(function (resp) {
-      if (resp.kind === 'embed' && resp.wrapped_html) {
+      if ((resp.kind === 'embed' || resp.kind === 'card') && resp.wrapped_html) {
         replacePlaceholder(editor, url, resp.wrapped_html);
       } else {
         if (host) {

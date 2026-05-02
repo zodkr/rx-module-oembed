@@ -35,6 +35,12 @@ class oembed extends EditorHandler
     $height = (int) ($attrs->{'data-height'} ?? 0) ?: null;
     $body = (string) ($xml_obj->body ?? '');
 
+    if ($kind === 'card') {
+      // 카드 마크업은 본문에 .preview_card_wrapper 가 이미 포함된 상태로 저장됨.
+      // 추가 wrapper 없이 그대로 반환한다.
+      return $body;
+    }
+
     if ($kind === 'embed' && $url !== '' && $providerKey !== '') {
       $providers = Registry::getProviders();
       $provider = $providers[$providerKey] ?? null;

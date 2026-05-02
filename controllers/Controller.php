@@ -3,8 +3,12 @@
 namespace Rhymix\Modules\Oembed\Controllers;
 
 use Rhymix\Framework\Filters\MediaFilter;
+use Rhymix\Modules\Oembed\Models\CardRenderer;
+use Rhymix\Modules\Oembed\Models\ImageAttacher;
+use Rhymix\Modules\Oembed\Models\OpenGraph;
 use Rhymix\Modules\Oembed\Models\Provider;
 use Rhymix\Modules\Oembed\Models\Registry;
+use Rhymix\Modules\Oembed\Models\RemoteFetcher;
 use Context;
 
 class Controller extends Base
@@ -16,11 +20,12 @@ class Controller extends Base
    * 변환한 결과를 JSON 으로 돌려준다.
    *
    * 응답:
-   *   { kind: 'embed', wrapped_html: '<div editor_component="oembed"...>', url, provider }
+   *   { kind: 'embed', wrapped_html, url, provider }
+   *   { kind: 'card',  wrapped_html, url }
    *   { kind: 'fail' }
    *
-   * v0.1.0 단계에서는 Registry 매칭에 성공한 경우에만 응답하고,
-   * 실패하는 경우는 모두 fail 로 통일한다 (OG 카드는 v0.2.0).
+   * 매칭 성공 → embed, 매칭 실패 → OG 카드 → 둘 다 실패하면 fail.
+   * 카드 흐름은 v0.2.0 부터 활성화된다.
    */
   public function procOembedFetch()
   {
@@ -33,41 +38,70 @@ class Controller extends Base
     }
 
     $matched = Registry::match($url);
-    if ($matched === null) {
+    if ($matched !== null) {
+      $provider = $matched['provider'];
+      $matchData = $matched['match'];
+      $width = (int) Context::get('width') ?: null;
+      $height = (int) Context::get('height') ?: null;
+      [$resolvedWidth, $resolvedHeight] = $provider->getDimensions($width, $height);
+
+      $embedHtml = $provider->buildEmbed($matchData, $resolvedWidth, $resolvedHeight);
+      if ($embedHtml === '') {
+        $this->add('kind', 'fail');
+        return;
+      }
+
+      foreach ($provider->hosts as $host) {
+        MediaFilter::addPrefix($host, true);
+      }
+
+      $providerKey = $this->shortName($provider);
+      $wrappedHtml = sprintf(
+        '<div editor_component="oembed" data-kind="embed" data-url="%s" data-provider="%s" data-width="%d" data-height="%d">%s</div>',
+        htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars($providerKey, ENT_QUOTES, 'UTF-8'),
+        $resolvedWidth,
+        $resolvedHeight,
+        $embedHtml
+      );
+
+      $this->add('kind', 'embed');
+      $this->add('wrapped_html', $wrappedHtml);
+      $this->add('url', $url);
+      $this->add('provider', $providerKey);
+      return;
+    }
+
+    // OG 카드 흐름 (v0.2.0+)
+    $fetched = RemoteFetcher::fetchHtml($url);
+    if ($fetched === null) {
+      $this->add('kind', 'fail');
+      return;
+    }
+    $og = OpenGraph::parse($fetched['body'], $fetched['final_url'] !== '' ? $fetched['final_url'] : $url);
+    if ($og['title'] === '' && $og['description'] === '' && $og['image'] === '') {
       $this->add('kind', 'fail');
       return;
     }
 
-    $provider = $matched['provider'];
-    $matchData = $matched['match'];
-    $width = (int) Context::get('width') ?: null;
-    $height = (int) Context::get('height') ?: null;
-    [$resolvedWidth, $resolvedHeight] = $provider->getDimensions($width, $height);
-
-    $embedHtml = $provider->buildEmbed($matchData, $resolvedWidth, $resolvedHeight);
-    if ($embedHtml === '') {
-      $this->add('kind', 'fail');
-      return;
+    $imageOverride = '';
+    if ($og['image'] !== '') {
+      $cached = ImageAttacher::attach($og['image']);
+      if ($cached !== null) {
+        $imageOverride = $cached;
+      }
     }
 
-    foreach ($provider->hosts as $host) {
-      MediaFilter::addPrefix($host, true);
-    }
-
-    $providerKey = $this->shortName($provider);
+    $cardHtml = CardRenderer::render($og, $url, $imageOverride);
     $wrappedHtml = sprintf(
-      '<div editor_component="oembed" data-kind="embed" data-url="%s" data-provider="%s" data-width="%d" data-height="%d">%s</div>',
+      '<div editor_component="oembed" data-kind="card" data-url="%s">%s</div>',
       htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
-      htmlspecialchars($providerKey, ENT_QUOTES, 'UTF-8'),
-      $resolvedWidth,
-      $resolvedHeight,
-      $embedHtml
+      $cardHtml
     );
 
-    $this->add('kind', 'embed');
+    $this->add('kind', 'card');
     $this->add('wrapped_html', $wrappedHtml);
     $this->add('url', $url);
-    $this->add('provider', $providerKey);
   }
 
   public function procOembedAttachImage()
