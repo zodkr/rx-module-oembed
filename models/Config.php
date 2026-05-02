@@ -32,6 +32,19 @@ class Config
     return $result;
   }
 
+  /**
+   * 호환 모드는 preview 모듈이 만들어 놓은 기존 카드/임베드와 외부 호출
+   * (dispPreviewCard 등)을 oembed 가 그대로 처리하기 위한 옵션이다.
+   *
+   * ON 일 때:
+   *   - 신규 카드도 preview 의 정확한 클래스명(preview_card_text_container,
+   *     preview_card_desc 등)으로 출력 → preview 시절 본문과 동일 CSS 적용
+   *   - 글 보기 페이지에서 _render.js 가 주입되어 .instagram-media 등
+   *     레거시 임베드의 SDK 가 자동 로드됨
+   * OFF 일 때:
+   *   - 신규 카드는 oembed_card_* 클래스만 사용
+   *   - 레거시 임베드 후처리 JS 미주입
+   */
   public static function isCompatibleMode(): bool
   {
     return self::getConfig()->compatible_mode !== 'N';
