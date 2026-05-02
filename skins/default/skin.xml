@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skin version="0.2">
+	<title xml:lang="ko">기본</title>
+	<title xml:lang="en">Default</title>
+	<description xml:lang="ko">시맨틱 figure/figcaption 마크업과 BEM 클래스 트리(.oembed-card__*) 를 사용하는 기본 카드 스킨.</description>
+	<description xml:lang="en">Default card skin using semantic figure/figcaption markup and the .oembed-card__* BEM class tree.</description>
+	<version>1.0.0</version>
+	<date>2026-05-03</date>
+	<author email_address="business@zod.kr" link="https://zod.kr">
+		<name xml:lang="ko">zod</name>
+		<name xml:lang="en">zod</name>
+	</author>
+</skin>
