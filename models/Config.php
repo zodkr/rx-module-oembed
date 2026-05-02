@@ -9,12 +9,17 @@ class Config
 {
   protected static ?object $cache = null;
 
+  public const DEFAULT_SKIN = 'default';
+
   public static function getConfig(): object
   {
     if (self::$cache === null) {
       $config = ModuleModel::getModuleConfig('oembed');
       self::$cache = is_object($config) ? $config : new \stdClass();
       self::$cache->compatible_mode = self::$cache->compatible_mode ?? 'Y';
+      self::$cache->skin = is_string(self::$cache->skin ?? null) && self::$cache->skin !== ''
+        ? self::$cache->skin
+        : self::DEFAULT_SKIN;
       self::$cache->disabled_providers = is_array(self::$cache->disabled_providers ?? null)
         ? self::$cache->disabled_providers
         : [];
@@ -46,6 +51,19 @@ class Config
   public static function isCompatibleMode(): bool
   {
     return self::getConfig()->compatible_mode !== 'N';
+  }
+
+  /**
+   * 현재 활성 카드 스킨 이름. CardRenderer 와 EventHandlers 가 공유한다.
+   * 운영자가 어드민에서 선택한 스킨이 실제 디렉터리에 없으면 'default' 폴백.
+   */
+  public static function getSkin(): string
+  {
+    $skin = (string) (self::getConfig()->skin ?? self::DEFAULT_SKIN);
+    if ($skin === '' || !is_dir(\RX_BASEDIR . 'modules/oembed/skins/' . $skin)) {
+      return self::DEFAULT_SKIN;
+    }
+    return $skin;
   }
 
   /**
