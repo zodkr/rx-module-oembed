@@ -32,6 +32,19 @@
 
   <div class="x_page-content">
     <div class="oembed-row">
+      <label class="oembed-field-label" for="oembed-skin">{{ $lang->oembed_skin }}</label>
+      <select id="oembed-skin" name="skin" class="oembed-select">
+        @php $currentSkin = $oembed_config->skin ?? 'default'; @endphp
+        @foreach ($oembed_skin_list as $skinKey => $skinInfo)
+          <option value="{{ $skinKey }}" {{ $currentSkin === $skinKey ? 'selected' : '' }}>
+            {{ $skinInfo->title ?? $skinKey }}
+          </option>
+        @endforeach
+      </select>
+      <p class="oembed-help">{{ $lang->oembed_skin_desc }}</p>
+    </div>
+
+    <div class="oembed-row">
       <label class="oembed-checkbox">
         <input type="checkbox" name="compatible_mode" value="Y"
                {{ ($oembed_config->compatible_mode ?? 'Y') === 'Y' ? 'checked' : '' }} />
@@ -69,5 +82,13 @@
   .oembed-help code {
     padding: 1px 6px; background: #f5f5f5; border-radius: 3px;
     color: #c7254e; font-size: 0.92em;
+  }
+
+  .oembed-field-label {
+    display: block; font-weight: 600; margin-bottom: 6px; line-height: 1.4;
+  }
+  .oembed-select {
+    width: 100%; max-width: 360px; padding: 6px 10px;
+    border: 1px solid #d0d7de; border-radius: 4px; background: #fff;
   }
 </style>

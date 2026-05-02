@@ -6,6 +6,7 @@ use Rhymix\Framework\Filters\MediaFilter;
 use Rhymix\Modules\Oembed\Models\Config as ConfigModel;
 use Rhymix\Modules\Oembed\Models\Registry;
 use Context;
+use ModuleModel;
 
 class Admin extends Base
 {
@@ -16,8 +17,10 @@ class Admin extends Base
 
   public function dispOembedAdminConfig()
   {
+    $skinList = ModuleModel::getSkins($this->module_path, 'skins');
     Context::set('oembed_config', ConfigModel::getConfig());
     Context::set('oembed_preview_active', ConfigModel::isPreviewModuleActive());
+    Context::set('oembed_skin_list', is_array($skinList) ? $skinList : []);
     $this->setTemplateFile('config');
   }
 
@@ -53,6 +56,10 @@ class Admin extends Base
 
     if ($act === 'dispOembedAdminConfig') {
       $config->compatible_mode = (($vars->compatible_mode ?? 'N') === 'Y') ? 'Y' : 'N';
+      $skin = trim((string) ($vars->skin ?? ''));
+      if ($skin !== '' && is_dir($this->module_path . 'skins/' . $skin)) {
+        $config->skin = $skin;
+      }
     } elseif ($act === 'dispOembedAdminProviders') {
       // 폼은 enabled_providers[] (= 사용 체크) 만 전송한다.
       // 등록된 모든 provider 중 enabled 에 없는 것을 disabled 로 환산해 저장한다.

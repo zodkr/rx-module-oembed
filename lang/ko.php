@@ -4,6 +4,9 @@ $lang->cmd_oembed = 'oEmbed';
 $lang->cmd_oembed_general_config = '기본 설정';
 $lang->cmd_oembed_providers = 'Provider 관리';
 
+$lang->oembed_skin = '카드 스킨';
+$lang->oembed_skin_desc = '미리보기 카드의 디자인을 결정합니다. 새 스킨은 modules/oembed/skins/ 폴더에 추가하면 자동으로 인식됩니다. 스킨 변경은 새로 작성하는 카드부터 적용되며, 이미 작성된 카드의 모양은 바뀌지 않습니다.';
+
 $lang->oembed_compatible_mode = 'preview 모듈 호환';
 $lang->oembed_compatible_mode_desc = 'preview 모듈로 작성해 두었던 기존 게시물의 카드와 임베드를 그대로 표시합니다. 본문에 저장된 <code>preview_card_*</code>·<code>media_embed_wrapper</code> 마크업이 같은 모양으로 보이도록 게시물 읽기 화면에서 호환 스타일과 후처리 스크립트(인스타그램·페이스북·imgur SDK 자동 로드, lazy iframe 활성화) 를 함께 적용합니다. preview 모듈을 사용한 적 없는 새 사이트라면 꺼두셔도 됩니다.';
 

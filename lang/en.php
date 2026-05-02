@@ -4,6 +4,9 @@ $lang->cmd_oembed = 'oEmbed';
 $lang->cmd_oembed_general_config = 'General';
 $lang->cmd_oembed_providers = 'Providers';
 
+$lang->oembed_skin = 'Card skin';
+$lang->oembed_skin_desc = 'Controls the design of preview cards. New skins placed under modules/oembed/skins/ are picked up automatically. Switching skins applies to newly created cards only — existing cards keep their original look.';
+
 $lang->oembed_compatible_mode = 'Preview module compatibility';
 $lang->oembed_compatible_mode_desc = 'Keeps cards and embeds authored under the preview module rendering correctly. Adds compatible styles and a post-processing script (auto-loading Instagram / Facebook / Imgur SDKs and activating lazy iframes) on post-view pages so that legacy <code>preview_card_*</code> / <code>media_embed_wrapper</code> markup keeps its original look. Safe to turn off on a new site that has never used preview.';
 
