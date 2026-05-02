@@ -17,11 +17,11 @@ $lang->oembed_provider_enabled = 'Enabled';
 $lang->oembed_provider_type_multimedia = 'Multimedia';
 $lang->oembed_provider_type_social = 'Social';
 
-$lang->oembed_preview_active_warning = 'The preview module is currently active. Running both preview and oembed at the same time causes both modules to handle the same actions and conflicts. Please disable the preview module from System → Module management before retrying.';
+$lang->oembed_preview_active_warning = 'The preview module is also installed. Running both modules at once causes them to handle the same actions and conflict, so please remove the preview module from System → Module management.';
 
 $lang->oembed_refresh_providers = 'Reload provider list';
 $lang->oembed_refresh_providers_desc = 'Use this to refresh the cache after adding a new provider file.';
-$lang->oembed_providers_help = 'Only checked providers are enabled. Unchecked providers are skipped at paste time.';
+$lang->oembed_providers_help = 'Only checked providers are used. URLs from unchecked providers are not auto-embedded.';
 $lang->oembed_host_whitelisted = 'Allowed in System → Security → External media whitelist.';
 $lang->oembed_host_not_whitelisted = 'Not yet allowed. Add it manually under System → Security → External media whitelist; otherwise embedded iframes will be filtered out at render time.';
 
