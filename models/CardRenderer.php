@@ -3,11 +3,12 @@
 namespace Rhymix\Modules\Oembed\Models;
 
 /**
- * Open Graph 데이터를 oembed 자체 미리보기 카드 마크업으로 변환한다.
+ * Open Graph 데이터를 활성 *스킨* 의 카드 템플릿으로 렌더링한다.
  *
- * oembed 가 새로 만드는 카드는 항상 oembed_card_* 클래스로 출력한다.
- * preview 모듈의 preview_card_* 클래스는 *레거시 본문 호환* 을 위해
- * card.css 에 따로 정의되어 있을 뿐, 신규 카드 마크업과는 무관하다.
+ * 마크업과 스타일은 modules/oembed/skins/{skin}/card.{blade.php,html} +
+ * card.css 가 책임지며, CardRenderer 자체는 OG 입력을 정규화해 템플릿에
+ * 변수로 넘기는 역할만 한다. 활성 스킨이 실제 디렉터리에 없으면
+ * Config::getSkin() 이 default 로 폴백한다.
  */
 class CardRenderer
 {
@@ -19,38 +20,23 @@ class CardRenderer
    */
   public static function render(array $og, string $url, string $imageOverride = ''): string
   {
-    $title = $og['title'] !== '' ? $og['title'] : ($og['host'] ?: $url);
-    $description = $og['description'];
     $host = $og['host'] !== '' ? $og['host'] : (string) (parse_url($url, PHP_URL_HOST) ?? '');
-    $siteName = $og['site_name'] ?? '';
+    $title = $og['title'] !== '' ? $og['title'] : ($host !== '' ? $host : $url);
+    $source = $og['site_name'] !== '' ? $og['site_name'] : $host;
     $image = $imageOverride !== '' ? $imageOverride : $og['image'];
 
-    $hostLabel = $siteName !== '' ? $siteName : $host;
+    $cardData = [
+      'url' => $url,
+      'title' => $title,
+      'description' => $og['description'],
+      'image' => $image,
+      'source' => $source,
+    ];
 
-    $hrefHtml = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
-    $titleHtml = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
-    $descriptionHtml = htmlspecialchars($description, ENT_QUOTES, 'UTF-8');
-    $hostHtml = htmlspecialchars($hostLabel, ENT_QUOTES, 'UTF-8');
-    $imageTag = $image !== ''
-      ? '<img src="' . htmlspecialchars($image, ENT_QUOTES, 'UTF-8') . '" alt="" />'
-      : '';
+    $skin = Config::getSkin();
+    $tplPath = \RX_BASEDIR . 'modules/oembed/skins/' . $skin . '/';
 
-    return sprintf(
-      '<div class="oembed_card_wrapper" contenteditable="false">'
-      . '<a class="oembed_card_link" href="%s" target="_blank" rel="noopener noreferrer">'
-      . '%s'
-      . '<span class="oembed_card_text">'
-      . '<span class="oembed_card_title">%s</span>'
-      . '<span class="oembed_card_description">%s</span>'
-      . '<span class="oembed_card_host">%s</span>'
-      . '</span>'
-      . '</a>'
-      . '</div>',
-      $hrefHtml,
-      $imageTag,
-      $titleHtml,
-      $descriptionHtml,
-      $hostHtml
-    );
+    \Context::set('oembed_card', $cardData);
+    return (string) \TemplateHandler::getInstance()->compile($tplPath, 'card');
   }
 }
