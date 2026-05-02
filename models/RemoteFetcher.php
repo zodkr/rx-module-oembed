@@ -20,7 +20,37 @@ class RemoteFetcher
   public const MAX_REDIRECTS = 5;
   public const MAX_HTML_BYTES = 2 * 1024 * 1024; // 2MB
   public const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
+  public const URL_MAX_LENGTH = 2048;
   public const USER_AGENT = 'Mozilla/5.0 (compatible; OembedBot/0.1; +https://github.com/zodkr/rx-module-oembed)';
+
+  /**
+   * Normalize a user-supplied URL.
+   *
+   *  - 빈/너무 긴 값 거부
+   *  - 프로토콜 없으면 https:// 부여
+   *  - host 가 비었거나 형식이 부적합하면 거부
+   *
+   * Returns the normalized URL or null when the input is unusable.
+   * SSRF 가드(사설 IP 차단 등)는 별도로 isUrlSafe() 가 처리한다.
+   */
+  public static function normalizeUrl(string $raw): ?string
+  {
+    $url = trim($raw);
+    if ($url === '' || strlen($url) > self::URL_MAX_LENGTH) {
+      return null;
+    }
+    if (!preg_match('#^https?://#i', $url)) {
+      $url = 'https://' . ltrim($url, '/');
+    }
+    $parts = parse_url($url);
+    if (!is_array($parts) || empty($parts['host'])) {
+      return null;
+    }
+    if (!preg_match('/^[a-z0-9.-]+\.[a-z]{2,}$/i', $parts['host'])) {
+      return null;
+    }
+    return $url;
+  }
 
   /**
    * Fetch HTML at $url.

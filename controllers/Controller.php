@@ -12,8 +12,6 @@ use Context;
 
 class Controller extends Base
 {
-  private const URL_MAX_LENGTH = 2048;
-
   /**
    * 클라이언트(CKEditor) 가 paste/input 한 URL 을 받아 임베드 또는 미리보기 카드로
    * 변환한 결과를 JSON 으로 돌려준다.
@@ -30,7 +28,7 @@ class Controller extends Base
   {
     Context::setResponseMethod('JSON');
 
-    $url = $this->normalizeUrl((string) Context::get('url'));
+    $url = RemoteFetcher::normalizeUrl((string) Context::get('url'));
     if ($url === null) {
       $this->add('kind', 'fail');
       return;
@@ -125,29 +123,6 @@ class Controller extends Base
   public function procPreviewFileDownload()
   {
     return $this->procOembedFileDownload();
-  }
-
-  /**
-   * URL 정규화: 빈/너무 긴 값 거부, 프로토콜 없으면 https:// 부여, host 검증.
-   * 부적합하면 null.
-   */
-  private function normalizeUrl(string $raw): ?string
-  {
-    $url = trim($raw);
-    if ($url === '' || strlen($url) > self::URL_MAX_LENGTH) {
-      return null;
-    }
-    if (!preg_match('#^https?://#i', $url)) {
-      $url = 'https://' . ltrim($url, '/');
-    }
-    $parts = parse_url($url);
-    if (!is_array($parts) || empty($parts['host'])) {
-      return null;
-    }
-    if (!preg_match('/^[a-z0-9.-]+\.[a-z]{2,}$/i', $parts['host'])) {
-      return null;
-    }
-    return $url;
   }
 
   private function shortName(Provider $provider): string

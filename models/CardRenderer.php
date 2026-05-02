@@ -23,17 +23,20 @@ class CardRenderer
     $title = $og['title'] !== '' ? $og['title'] : ($og['host'] ?: $url);
     $description = $og['description'];
     $host = $og['host'] !== '' ? $og['host'] : (string) (parse_url($url, PHP_URL_HOST) ?? '');
+    $siteName = $og['site_name'] ?? '';
     $image = $imageOverride !== '' ? $imageOverride : $og['image'];
 
     $hrefHtml = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
     $titleHtml = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
     $descriptionHtml = htmlspecialchars($description, ENT_QUOTES, 'UTF-8');
-    $hostHtml = htmlspecialchars($host, ENT_QUOTES, 'UTF-8');
     $imageTag = $image !== ''
       ? '<img src="' . htmlspecialchars($image, ENT_QUOTES, 'UTF-8') . '" alt="" />'
       : '';
 
     if (Config::isCompatibleMode()) {
+      // preview 의 preview_card.html 과 동일한 host 라벨 형식.
+      $hostLabel = $siteName !== '' ? 'from ' . mb_strtoupper($siteName) : $host;
+      $hostHtml = htmlspecialchars($hostLabel, ENT_QUOTES, 'UTF-8');
       return sprintf(
         '<div class="preview_card_wrapper" contenteditable="false">'
         . '<a class="preview_card_link" href="%s" target="_blank" rel="noopener noreferrer">'
@@ -53,6 +56,7 @@ class CardRenderer
       );
     }
 
+    $hostHtml = htmlspecialchars($host, ENT_QUOTES, 'UTF-8');
     return sprintf(
       '<div class="oembed_card_wrapper" contenteditable="false">'
       . '<a class="oembed_card_link" href="%s" target="_blank" rel="noopener noreferrer">'
