@@ -17,6 +17,14 @@
   </li>
 </ul>
 
+<form action="{{ getUrl() }}" method="post" style="display:inline-block; margin-bottom: 12px;">
+  <input type="hidden" name="module" value="admin" />
+  <input type="hidden" name="act" value="procOembedAdminRefreshProviders" />
+  <input type="hidden" name="success_return_url" value="{{ getCurrentPageUrl() }}" />
+  <button type="submit" class="x_btn x_btn-default">{{ $lang->oembed_refresh_providers }}</button>
+  <small class="x_text-muted" style="margin-left: 8px;">{{ $lang->oembed_refresh_providers_desc }}</small>
+</form>
+
 <form action="{{ getUrl() }}" method="post">
   <input type="hidden" name="module" value="admin" />
   <input type="hidden" name="act" value="procOembedAdminInsertConfig" />
@@ -35,6 +43,7 @@
     <tbody>
       @php
         $disabledProviders = $oembed_config->disabled_providers ?? [];
+        $hostStatus = $oembed_host_whitelist ?? [];
       @endphp
       @foreach ($oembed_providers as $key => $provider)
         @php
@@ -42,6 +51,7 @@
           $typeLabel = $provider->type === 'multimedia'
             ? $lang->oembed_provider_type_multimedia
             : $lang->oembed_provider_type_social;
+          $providerHosts = $hostStatus[$key] ?? [];
         @endphp
         <tr>
           <td>
@@ -50,7 +60,18 @@
           <td><strong>{{ $provider->name }}</strong> <small class="x_text-muted">({{ $key }})</small></td>
           <td>{{ $typeLabel }}</td>
           <td>{{ $provider->oembed ? 'O' : '-' }}</td>
-          <td><small>{{ implode(', ', $provider->hosts) }}</small></td>
+          <td>
+            @foreach ($provider->hosts as $host)
+              @php $isWhitelisted = $providerHosts[$host] ?? false; @endphp
+              <span title="{{ $isWhitelisted ? $lang->oembed_host_whitelisted : $lang->oembed_host_not_whitelisted }}"
+                    style="display:inline-block; padding:1px 6px; margin:1px 2px 1px 0; border-radius:3px;
+                           background:{{ $isWhitelisted ? '#e6f4ea' : '#fce8e6' }};
+                           color:{{ $isWhitelisted ? '#1e8e3e' : '#c5221f' }};
+                           font-size: 0.85em;">
+                {{ $isWhitelisted ? '✓' : '✗' }} {{ $host }}
+              </span>
+            @endforeach
+          </td>
         </tr>
       @endforeach
       @if (count($oembed_providers) === 0)
@@ -59,7 +80,7 @@
     </tbody>
   </table>
 
-  <p class="x_help-block">체크된 provider 는 비활성화됩니다. 비활성화된 provider 는 paste 시점에 매칭에서 제외됩니다.</p>
+  <p class="x_help-block">{{ $lang->oembed_providers_help }}</p>
 
   <button type="submit" class="x_btn x_btn-primary">{{ $lang->cmd_registration }}</button>
 </form>

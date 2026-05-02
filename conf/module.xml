@@ -6,6 +6,7 @@
     <action name="dispOembedAdminConfig" class="Controllers\Admin" menu-name="oembed" admin-index="true" />
     <action name="dispOembedAdminProviders" class="Controllers\Admin" />
     <action name="procOembedAdminInsertConfig" class="Controllers\Admin" />
+    <action name="procOembedAdminRefreshProviders" class="Controllers\Admin" />
 
     <!-- 외부 노출 액션 (URL 기반 카드/임베드 응답) -->
     <action name="dispOembedCard" class="Controllers\View" standalone="true" meta-noindex="true" />
