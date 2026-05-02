@@ -17,6 +17,20 @@
   </li>
 </ul>
 
+@php
+  $missingHosts = $oembed_missing_hosts ?? [];
+@endphp
+@if (count($missingHosts) > 0)
+  <div class="x_panel" style="border:1px solid #f5c6cb; border-radius:6px; padding:12px 16px; margin-bottom: 16px; background:#fff8f8;">
+    <h3 style="margin-top:0;">{{ $lang->oembed_missing_hosts_title }}</h3>
+    <p>{!! $lang->oembed_missing_hosts_intro !!}</p>
+    <textarea readonly rows="{{ min(count($missingHosts) + 1, 12) }}" class="x_full-width" onclick="this.select();" style="font-family: monospace; width: 100%; padding: 8px;">{{ implode("\n", $missingHosts) }}</textarea>
+    <a class="x_btn x_btn-primary" href="{{ getUrl('', 'module', 'admin', 'act', 'dispAdminConfigSecurity') }}#mediafilter_whitelist" target="_blank" rel="noopener" style="margin-top: 8px;">
+      {{ $lang->oembed_open_security_config }} →
+    </a>
+  </div>
+@endif
+
 <form action="{{ getUrl() }}" method="post" style="display:inline-block; margin-bottom: 12px;">
   <input type="hidden" name="module" value="admin" />
   <input type="hidden" name="act" value="procOembedAdminRefreshProviders" />

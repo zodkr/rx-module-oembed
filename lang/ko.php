@@ -21,8 +21,12 @@ $lang->oembed_preview_active_warning = 'preview 모듈이 활성화되어 있습
 $lang->oembed_refresh_providers = 'Provider 캐시 새로고침';
 $lang->oembed_refresh_providers_desc = 'providers/ 디렉터리에 새 PHP 파일을 떨어뜨린 뒤 즉시 반영하려면 누르세요.';
 $lang->oembed_providers_help = '체크된 provider 는 비활성화됩니다. 비활성화된 provider 는 paste 시점에 매칭에서 제외됩니다.';
-$lang->oembed_host_whitelisted = 'iframe 화이트리스트에 등록되어 있습니다.';
-$lang->oembed_host_not_whitelisted = '아직 화이트리스트에 등록되지 않았습니다. paste 가 한 번 일어나면 자동 등록됩니다.';
+$lang->oembed_host_whitelisted = '시스템 보안 설정의 외부 멀티미디어 허용 목록에 등록되어 있습니다.';
+$lang->oembed_host_not_whitelisted = '아직 허용되지 않았습니다. 시스템 → 설정 → 보안 → 외부 멀티미디어 허용 화면에서 직접 추가해야 본문 출력 시 임베드가 표시됩니다.';
+
+$lang->oembed_missing_hosts_title = '승인이 필요한 외부 호스트';
+$lang->oembed_missing_hosts_intro = '아래 호스트들이 <strong>외부 멀티미디어 허용 목록</strong>에 등록되어 있지 않아, 본문에 임베드된 iframe 이 출력 시점에 차단됩니다. 텍스트를 복사해 시스템 → 설정 → 보안 → <em>외부 멀티미디어 허용</em> 항목에 추가해 주세요. (oembed 모듈은 보안상의 이유로 이 목록을 자동 갱신하지 않습니다.)';
+$lang->oembed_open_security_config = '시스템 보안 설정 열기';
 
 $lang->oembed_preview_disable_guide_title = 'preview 모듈을 비활성화하는 방법';
 $lang->oembed_preview_disable_guide_steps = '<ol><li>관리자 화면 좌측 메뉴 → 시스템 → 모듈 관리 로 이동합니다.</li><li>설치된 모듈 목록에서 <strong>링크 프리뷰(preview)</strong> 를 찾아 우측의 <strong>제거</strong> 버튼을 누릅니다.</li><li>제거 후 oembed 가 preview 의 외부 액션(<code>dispPreviewCard</code> 등) 을 자동으로 흡수해 응답하므로, 외부 캐시·이메일·외부 사이트의 링크는 그대로 동작합니다.</li><li>본문에 저장된 <code>preview_card_*</code> 마크업 역시 oembed 가 동일한 클래스명으로 출력해 호환을 유지합니다(<em>호환 모드</em> ON 시).</li></ol>';

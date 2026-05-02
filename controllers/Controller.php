@@ -2,7 +2,6 @@
 
 namespace Rhymix\Modules\Oembed\Controllers;
 
-use Rhymix\Framework\Filters\MediaFilter;
 use Rhymix\Modules\Oembed\Models\CardRenderer;
 use Rhymix\Modules\Oembed\Models\ImageAttacher;
 use Rhymix\Modules\Oembed\Models\OpenGraph;
@@ -49,10 +48,6 @@ class Controller extends Base
       if ($embedHtml === '') {
         $this->add('kind', 'fail');
         return;
-      }
-
-      foreach ($provider->hosts as $host) {
-        MediaFilter::addPrefix($host, true);
       }
 
       $providerKey = $this->shortName($provider);

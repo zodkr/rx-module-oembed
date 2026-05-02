@@ -25,9 +25,14 @@ class Admin extends Base
   {
     $providers = Registry::getProviders();
     $hostStatus = [];
+    $missingHosts = [];
     foreach ($providers as $key => $provider) {
       foreach ($provider->hosts as $host) {
-        $hostStatus[$key][$host] = MediaFilter::matchWhitelist('https://' . $host . '/');
+        $isWhitelisted = MediaFilter::matchWhitelist('https://' . $host . '/');
+        $hostStatus[$key][$host] = $isWhitelisted;
+        if (!$isWhitelisted) {
+          $missingHosts[$host] = true;
+        }
       }
     }
 
@@ -35,6 +40,7 @@ class Admin extends Base
     Context::set('oembed_preview_active', ConfigModel::isPreviewModuleActive());
     Context::set('oembed_providers', $providers);
     Context::set('oembed_host_whitelist', $hostStatus);
+    Context::set('oembed_missing_hosts', array_keys($missingHosts));
     $this->setTemplateFile('providers');
   }
 
@@ -64,15 +70,15 @@ class Admin extends Base
   /**
    * Provider 자동 스캔 캐시를 비우고 어드민 화면으로 돌려보낸다.
    * 새 provider 파일을 떨어뜨린 직후 변경 사항을 즉시 반영하기 위함.
+   *
+   * iframe 화이트리스트는 자동으로 등록하지 않는다. 운영자가 시스템 →
+   * 설정 → 보안 → 외부 멀티미디어 허용 화면에서 직접 호스트를 승인해야
+   * 임베드가 본문에 살아있게 된다.
    */
   public function procOembedAdminRefreshProviders()
   {
     Registry::flush();
-    foreach (Registry::getProviders() as $provider) {
-      foreach ($provider->hosts as $host) {
-        MediaFilter::addPrefix($host, true);
-      }
-    }
+    Registry::getProviders();
     $this->setMessage('success_registed');
     $this->setRedirectUrl(Context::get('success_return_url'));
   }

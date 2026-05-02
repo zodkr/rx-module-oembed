@@ -15,8 +15,11 @@ Rhymix 용 oEmbed 모듈. CKEditor 4 에서 사용자가 URL 을 붙여넣으면
   메타를 추출해 미리보기 카드로 변환합니다.
 - **SSRF 가드** — 사설/예약 IP, localhost, 클라우드 메타데이터 엔드포인트
   (169.254.169.254) 차단. 리다이렉트도 검증.
-- **iframe whitelist 자동 등록** — `MediaFilter::addPrefix` 로 첫 paste 시점에
-  자동 등록.
+- **iframe whitelist 명시적 승인** — 사이트 보안 정책상 oembed 가 시스템
+  설정을 자동 갱신하지 않습니다. 어드민 → oEmbed → Provider 관리 화면에서
+  승인이 필요한 호스트 목록을 보여주고, 운영자가 시스템 → 설정 → 보안 →
+  외부 멀티미디어 허용에서 직접 등록합니다. 등록 전까지 본문 출력 시
+  iframe 이 차단됩니다.
 - **preview 호환** — `dispPreviewCard` / `dispPreviewIframe` 등 외부 액션과
   `preview_card_*` 마크업을 그대로 응답해 외부 캐시·이메일 링크가 깨지지 않게 함.
 
@@ -102,7 +105,7 @@ CKEditor 4 외 에디터(예: Draft.js, Quill, TinyMCE 등)에서도
 | **v0.1.0** | 모듈 골격, AbstractProvider, Registry, Youtube, procOembedFetch (embed), CKEditor JS, 에디터 컴포넌트, preview 액션 별칭, 어드민 빈 화면 |
 | **v0.2.0** | OG 파서, RemoteFetcher (SSRF 가드), CardRenderer, ImageAttacher, 카드 흐름 |
 | **v0.3.0** | Facebook / Instagram / Imgur Provider |
-| **v0.4.0** | 어드민 UI 강화 (Provider 캐시 새로고침, 호스트 whitelist 배지, preview 비활성화 가이드) |
+| **v0.4.0** | 어드민 UI 강화 (Provider 캐시 새로고침, 호스트 whitelist 상태 배지, 미등록 호스트 종합 안내, preview 비활성화 가이드). iframe whitelist 자동 등록 제거 — 명시적 승인 정책 도입 |
 | **v0.5.0** | 외부 컨트리뷰터 가이드, 다른 에디터 통합 매뉴얼 |
 
 ## 디렉터리 구조

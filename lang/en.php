@@ -21,8 +21,12 @@ $lang->oembed_preview_active_warning = 'The preview module is currently active. 
 $lang->oembed_refresh_providers = 'Refresh provider cache';
 $lang->oembed_refresh_providers_desc = 'Click after dropping a new PHP file into providers/ to apply changes immediately.';
 $lang->oembed_providers_help = 'Checked providers are disabled and will be skipped at paste time.';
-$lang->oembed_host_whitelisted = 'Host is registered in the iframe whitelist.';
-$lang->oembed_host_not_whitelisted = 'Not yet whitelisted. Will be registered automatically on the next paste.';
+$lang->oembed_host_whitelisted = 'Allowed in System → Security → External media whitelist.';
+$lang->oembed_host_not_whitelisted = 'Not yet allowed. Add it manually under System → Security → External media whitelist; otherwise embedded iframes will be filtered out at render time.';
+
+$lang->oembed_missing_hosts_title = 'External hosts pending approval';
+$lang->oembed_missing_hosts_intro = 'The following hosts are not in the <strong>external media whitelist</strong>, so embedded iframes will be filtered out when posts are rendered. Copy the list and add it under System → Security → <em>External media whitelist</em>. (oembed never modifies this list automatically for security reasons.)';
+$lang->oembed_open_security_config = 'Open System Security Settings';
 
 $lang->oembed_preview_disable_guide_title = 'How to disable the preview module';
 $lang->oembed_preview_disable_guide_steps = '<ol><li>From the admin sidebar, go to System → Module management.</li><li>Find <strong>Link Preview (preview)</strong> in the installed modules list and press the <strong>Remove</strong> button on its row.</li><li>oembed automatically absorbs the preview module\'s public actions (<code>dispPreviewCard</code> etc.), so external caches, emails, and external links keep working.</li><li>The <code>preview_card_*</code> markup stored in existing posts is also rendered by oembed under the same class names when <em>compatible mode</em> is ON.</li></ol>';
