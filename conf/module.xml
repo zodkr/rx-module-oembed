@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module>
+  <grants></grants>
+  <actions>
+    <!-- 어드민 -->
+    <action name="dispOembedAdminConfig" class="Controllers\Admin" menu-name="oembed" admin-index="true" />
+    <action name="dispOembedAdminProviders" class="Controllers\Admin" />
+    <action name="procOembedAdminInsertConfig" class="Controllers\Admin" />
+
+    <!-- 외부 노출 액션 (URL 기반 카드/임베드 응답) -->
+    <action name="dispOembedCard" class="Controllers\View" standalone="true" meta-noindex="true" />
+    <action name="dispOembedCardByData" class="Controllers\View" standalone="true" meta-noindex="true" />
+    <action name="dispOembedIframe" class="Controllers\View" standalone="true" meta-noindex="true" />
+
+    <!-- 페이스트 시 호출되는 메인 API -->
+    <action name="procOembedFetch" class="Controllers\Controller" standalone="true" meta-noindex="true" />
+    <action name="procOembedAttachImage" class="Controllers\Controller" standalone="true" meta-noindex="true" />
+    <action name="procOembedTempImageDelete" class="Controllers\Controller" standalone="true" meta-noindex="true" />
+    <action name="procOembedFileDownload" class="Controllers\Controller" standalone="true" meta-noindex="true" method="GET|POST" />
+
+    <!-- preview 모듈 호환 별칭 (외부 캐시·이메일 링크가 그대로 동작) -->
+    <action name="dispPreviewCard" class="Controllers\View" standalone="true" meta-noindex="true" />
+    <action name="dispPreviewCardByData" class="Controllers\View" standalone="true" meta-noindex="true" />
+    <action name="dispPreviewIframe" class="Controllers\View" standalone="true" meta-noindex="true" />
+    <action name="procPreviewImageFileInfo" class="Controllers\Controller" standalone="true" meta-noindex="true" />
+    <action name="procPreviewImageTempFileDelete" class="Controllers\Controller" standalone="true" meta-noindex="true" />
+    <action name="procPreviewFileDownload" class="Controllers\Controller" standalone="true" meta-noindex="true" method="GET|POST" />
+  </actions>
+  <eventHandlers>
+    <eventHandler before="display" class="Controllers\EventHandlers" method="injectEditorAssets" />
+  </eventHandlers>
+  <menus>
+    <menu name="oembed" type="all">
+      <title xml:lang="ko">oEmbed</title>
+      <title xml:lang="en">oEmbed</title>
+    </menu>
+  </menus>
+</module>
