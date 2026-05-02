@@ -4,8 +4,8 @@ $lang->cmd_oembed = 'oEmbed';
 $lang->cmd_oembed_general_config = 'General';
 $lang->cmd_oembed_providers = 'Providers';
 
-$lang->oembed_compatible_mode = 'Compatible mode (preview markup)';
-$lang->oembed_compatible_mode_desc = 'Render cards using the same class names as the preview module (<code>preview_card_*</code>) so that legacy stylesheets keep working.';
+$lang->oembed_compatible_mode = 'Preview module compatibility';
+$lang->oembed_compatible_mode_desc = 'Keeps cards and embeds saved by the preview module rendering correctly. The legacy <code>preview_card_*</code> and <code>media_embed_wrapper</code> markup is emitted under the same class names, and external calls such as <code>dispPreviewCard</code> are handled by oembed. Safe to turn off on a new site that has never used preview.';
 
 $lang->oembed_provider_name = 'Provider';
 $lang->oembed_provider_type = 'Type';

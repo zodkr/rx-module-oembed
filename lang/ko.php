@@ -4,8 +4,8 @@ $lang->cmd_oembed = 'oEmbed';
 $lang->cmd_oembed_general_config = '기본 설정';
 $lang->cmd_oembed_providers = 'Provider 관리';
 
-$lang->oembed_compatible_mode = '호환 모드 (preview 마크업 유지)';
-$lang->oembed_compatible_mode_desc = '카드 마크업을 preview 모듈과 동일한 클래스명(<code>preview_card_*</code>)으로 출력합니다. 기존 게시글의 CSS 가 그대로 적용됩니다.';
+$lang->oembed_compatible_mode = 'preview 모듈 호환';
+$lang->oembed_compatible_mode_desc = 'preview 모듈로 작성해 두었던 기존 게시물의 카드와 임베드를 그대로 표시합니다. preview 시절 본문에 저장된 <code>preview_card_*</code>·<code>media_embed_wrapper</code> 마크업을 같은 클래스명으로 출력하고, 외부 캐시·이메일에서 들어오는 <code>dispPreviewCard</code> 같은 호출도 oembed 가 받아 처리합니다. preview 모듈을 사용한 적 없는 새 사이트라면 꺼두셔도 됩니다.';
 
 $lang->oembed_provider_name = 'Provider';
 $lang->oembed_provider_type = '유형';
