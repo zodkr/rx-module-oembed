@@ -100,7 +100,9 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   oembed-native classes (compatible mode OFF) — visual mirror of preview
+   oembed_card_* — oembed 가 새로 만드는 카드의 자체 마크업.
+   레거시 .preview_card_* 와는 별개의 클래스 트리이며, CardRenderer 가
+   생성하는 모든 카드는 호환 모드 토글과 무관하게 이 클래스를 쓴다.
    ───────────────────────────────────────────────────────────────────────── */
 .oembed_card_wrapper {
   display: block;
@@ -153,7 +155,6 @@
   font-size: 0.8em;
   color: #888;
 }
-
 @media (max-width: 600px) {
   .oembed_card_wrapper .oembed_card_link {
     flex-direction: column;
