@@ -31,17 +31,20 @@ class Registry
   }
 
   /**
-   * Return every registered provider keyed by class basename (e.g. 'Youtube').
-   * Disabled providers (per module config) are skipped.
+   * Return registered providers keyed by class basename (e.g. 'Youtube').
+   *
+   * paste/transHTML 시점에는 비활성화된 provider 를 제외해야 하지만,
+   * 어드민 화면은 운영자가 비활성화된 항목을 다시 켤 수 있어야 하므로
+   * 전체 목록이 필요하다. 두 호출 의도를 단일 인자로 분기한다.
    *
    * @return array<string, Provider>
    */
-  public static function getProviders(): array
+  public static function getProviders(bool $onlyEnabled = true): array
   {
     if (self::$providers === null) {
       self::$providers = self::loadProviders();
     }
-    return self::filterEnabled(self::$providers);
+    return $onlyEnabled ? self::filterEnabled(self::$providers) : self::$providers;
   }
 
   /**

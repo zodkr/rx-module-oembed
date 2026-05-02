@@ -23,7 +23,8 @@ class Admin extends Base
 
   public function dispOembedAdminProviders()
   {
-    $providers = Registry::getProviders();
+    // 어드민에서는 비활성화된 provider 도 보여야 다시 켤 수 있다.
+    $providers = Registry::getProviders(false);
     $hostStatus = [];
     $missingHosts = [];
     foreach ($providers as $key => $provider) {
@@ -53,8 +54,13 @@ class Admin extends Base
     if ($act === 'dispOembedAdminConfig') {
       $config->compatible_mode = (($vars->compatible_mode ?? 'N') === 'Y') ? 'Y' : 'N';
     } elseif ($act === 'dispOembedAdminProviders') {
-      $disabled = is_array($vars->disabled_providers ?? null) ? $vars->disabled_providers : [];
-      $config->disabled_providers = array_values(array_filter(array_map('strval', $disabled)));
+      // 폼은 enabled_providers[] (= 사용 체크) 만 전송한다.
+      // 등록된 모든 provider 중 enabled 에 없는 것을 disabled 로 환산해 저장한다.
+      $enabled = is_array($vars->enabled_providers ?? null)
+        ? array_map('strval', $vars->enabled_providers)
+        : [];
+      $allKeys = array_keys(Registry::getProviders(false));
+      $config->disabled_providers = array_values(array_diff($allKeys, $enabled));
       Registry::flush();
     }
 

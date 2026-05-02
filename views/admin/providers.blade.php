@@ -66,7 +66,7 @@
       </colgroup>
       <thead>
         <tr>
-          <th></th>
+          <th class="x_text-center">{{ $lang->oembed_provider_enabled }}</th>
           <th>{{ $lang->oembed_provider_name }}</th>
           <th>{{ $lang->oembed_provider_type }}</th>
           <th>{{ $lang->oembed_provider_oembed }}</th>
@@ -76,19 +76,24 @@
       <tbody>
         @foreach ($oembed_providers as $key => $provider)
           @php
-            $isDisabled = in_array($key, $disabledProviders, true);
+            $isEnabled = !in_array($key, $disabledProviders, true);
             $typeLabel = $provider->type === 'multimedia'
               ? $lang->oembed_provider_type_multimedia
               : $lang->oembed_provider_type_social;
             $providerHosts = $hostStatus[$key] ?? [];
+            $checkboxId = 'oembed-provider-' . $key;
           @endphp
-          <tr class="{{ $isDisabled ? 'oembed-row-disabled' : '' }}">
+          <tr class="{{ $isEnabled ? '' : 'oembed-row-disabled' }}">
             <td class="x_text-center">
-              <input type="checkbox" name="disabled_providers[]" value="{{ $key }}" {{ $isDisabled ? 'checked' : '' }} />
+              <label class="oembed-toggle">
+                <input type="checkbox" id="{{ $checkboxId }}" name="enabled_providers[]" value="{{ $key }}" {{ $isEnabled ? 'checked' : '' }} />
+              </label>
             </td>
             <td>
-              <strong>{{ $provider->name }}</strong>
-              <small class="oembed-provider-key">{{ $key }}</small>
+              <label for="{{ $checkboxId }}" class="oembed-provider-label">
+                <strong>{{ $provider->name }}</strong>
+                <small class="oembed-provider-key">{{ $key }}</small>
+              </label>
             </td>
             <td>{{ $typeLabel }}</td>
             <td>{{ $provider->oembed ? 'O' : '–' }}</td>
@@ -138,7 +143,12 @@
   .oembed-providers-table th, .oembed-providers-table td {
     padding: 8px 10px; vertical-align: middle;
   }
-  .oembed-row-disabled { opacity: 0.55; }
+  .oembed-row-disabled { background: #fafafa; }
+  .oembed-row-disabled td:not(:first-child) { opacity: 0.55; }
+  .oembed-toggle { display: inline-flex; cursor: pointer; padding: 4px; }
+  .oembed-toggle input { width: 18px; height: 18px; cursor: pointer; }
+  .oembed-provider-label { cursor: pointer; display: inline-block; }
+  .oembed-provider-label:hover strong { text-decoration: underline; }
   .oembed-provider-key { color: #888; margin-left: 6px; font-weight: normal; }
   .oembed-empty { color: #999; padding: 20px 0 !important; }
 

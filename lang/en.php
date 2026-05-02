@@ -12,6 +12,7 @@ $lang->oembed_provider_type = 'Type';
 $lang->oembed_provider_oembed = 'oEmbed';
 $lang->oembed_provider_hosts = 'Hosts';
 $lang->oembed_provider_status = 'Status';
+$lang->oembed_provider_enabled = 'Enabled';
 
 $lang->oembed_provider_type_multimedia = 'Multimedia';
 $lang->oembed_provider_type_social = 'Social';
@@ -20,7 +21,7 @@ $lang->oembed_preview_active_warning = 'The preview module is currently active. 
 
 $lang->oembed_refresh_providers = 'Refresh provider cache';
 $lang->oembed_refresh_providers_desc = 'Click after dropping a new PHP file into providers/ to apply changes immediately.';
-$lang->oembed_providers_help = 'Checked providers are disabled and will be skipped at paste time.';
+$lang->oembed_providers_help = 'Only checked providers are enabled. Unchecked providers are skipped at paste time.';
 $lang->oembed_host_whitelisted = 'Allowed in System → Security → External media whitelist.';
 $lang->oembed_host_not_whitelisted = 'Not yet allowed. Add it manually under System → Security → External media whitelist; otherwise embedded iframes will be filtered out at render time.';
 
