@@ -17,7 +17,7 @@ $lang->oembed_provider_enabled = '사용';
 $lang->oembed_provider_type_multimedia = '멀티미디어';
 $lang->oembed_provider_type_social = 'SNS';
 
-$lang->oembed_preview_active_warning = 'preview 모듈이 함께 설치되어 있습니다. 두 모듈이 글쓰기 페이지에서 동시에 paste 를 처리하려 해 임베드가 중복되거나 어긋날 수 있으니, 시스템 → 모듈 관리에서 preview 모듈을 제거해 주세요.';
+$lang->oembed_preview_active_warning = 'preview 모듈이 함께 설치되어 있습니다. 두 모듈이 글쓰기 페이지에서 동시에 paste 를 처리하려 해 임베드가 중복되거나 어긋날 수 있으니, preview 모듈을 제거해 주세요.';
 
 $lang->oembed_refresh_providers = 'Provider 목록 다시 불러오기';
 $lang->oembed_refresh_providers_desc = '새 Provider 파일을 추가했을 때 캐시 갱신을 위해 사용해주세요.';
@@ -29,5 +29,5 @@ $lang->oembed_missing_hosts_title = '허용이 필요한 외부 호스트';
 $lang->oembed_missing_hosts_intro = '아래 호스트가 <strong>외부 멀티미디어 허용 목록</strong>에 없어, 게시물에 삽입된 iframe 이 화면에 표시되지 않습니다. 아래 텍스트를 복사하셔서 시스템 → 설정 → 보안 → <em>외부 멀티미디어 허용</em> 에 추가해 주세요. (보안상 이 목록은 모듈이 자동으로 변경하지 않습니다.)';
 $lang->oembed_open_security_config = '시스템 보안 설정 열기';
 
-$lang->oembed_preview_disable_guide_title = 'preview 모듈을 제거하는 방법';
-$lang->oembed_preview_disable_guide_steps = '<ol><li>관리자 화면 왼쪽 메뉴에서 시스템 → 모듈 관리로 이동합니다.</li><li>설치된 모듈 목록에서 <strong>링크 프리뷰 (preview)</strong> 를 찾아 오른쪽 <strong>제거</strong> 버튼을 누릅니다.</li><li>이미 작성된 게시물의 <code>preview_card_*</code> 카드와 <code>media_embed_wrapper</code> 임베드는 <em>호환 모드</em> 가 켜져 있을 때 oembed 가 같은 모양으로 출력하므로 게시물이 깨지지 않습니다.</li></ol>';
+$lang->oembed_preview_disable_guide_title = 'preview 모듈 제거 안내';
+$lang->oembed_preview_disable_guide_steps = '<p>preview 모듈을 제거해 주세요. 이미 작성된 게시물의 <code>preview_card_*</code> 카드와 <code>media_embed_wrapper</code> 임베드는 <em>호환 모드</em> 가 켜져 있을 때 oembed 가 같은 모양으로 출력하므로 게시물이 깨지지 않습니다.</p>';

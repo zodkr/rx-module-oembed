@@ -18,9 +18,6 @@
   <div class="oembed-guide">
     <h3>{{ $lang->oembed_preview_disable_guide_title }}</h3>
     {!! $lang->oembed_preview_disable_guide_steps !!}
-    <a class="x_btn x_btn-primary" href="{{ getUrl('', 'module', 'admin', 'act', 'dispModuleAdminContent') }}">
-      {{ $lang->oembed_preview_disable_guide_title }} →
-    </a>
   </div>
 @endif
 

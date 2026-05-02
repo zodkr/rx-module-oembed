@@ -17,7 +17,7 @@ $lang->oembed_provider_enabled = 'Enabled';
 $lang->oembed_provider_type_multimedia = 'Multimedia';
 $lang->oembed_provider_type_social = 'Social';
 
-$lang->oembed_preview_active_warning = 'The preview module is also installed. Both modules will try to handle paste events on write pages, which can produce duplicate or mismatched embeds. Please remove the preview module from System → Module management.';
+$lang->oembed_preview_active_warning = 'The preview module is also installed. Both modules will try to handle paste events on write pages, which can produce duplicate or mismatched embeds. Please remove the preview module.';
 
 $lang->oembed_refresh_providers = 'Reload provider list';
 $lang->oembed_refresh_providers_desc = 'Use this to refresh the cache after adding a new provider file.';
@@ -29,5 +29,5 @@ $lang->oembed_missing_hosts_title = 'External hosts pending approval';
 $lang->oembed_missing_hosts_intro = 'The following hosts are not in the <strong>external media whitelist</strong>, so embedded iframes will be filtered out when posts are rendered. Copy the list and add it under System → Security → <em>External media whitelist</em>. (oembed never modifies this list automatically for security reasons.)';
 $lang->oembed_open_security_config = 'Open System Security Settings';
 
-$lang->oembed_preview_disable_guide_title = 'How to disable the preview module';
-$lang->oembed_preview_disable_guide_steps = '<ol><li>From the admin sidebar, go to System → Module management.</li><li>Find <strong>Link Preview (preview)</strong> in the installed modules list and press the <strong>Remove</strong> button on its row.</li><li>Existing posts that contain <code>preview_card_*</code> cards and <code>media_embed_wrapper</code> embeds keep their original look while <em>compatible mode</em> is ON, so posts will not break.</li></ol>';
+$lang->oembed_preview_disable_guide_title = 'About removing the preview module';
+$lang->oembed_preview_disable_guide_steps = '<p>Please remove the preview module. Existing posts containing <code>preview_card_*</code> cards and <code>media_embed_wrapper</code> embeds keep their original look while <em>compatible mode</em> is ON, so posts will not break.</p>';
