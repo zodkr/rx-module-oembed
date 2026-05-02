@@ -16,12 +16,14 @@ class Admin extends Base
   public function dispOembedAdminConfig()
   {
     Context::set('oembed_config', ConfigModel::getConfig());
+    Context::set('oembed_preview_active', ConfigModel::isPreviewModuleActive());
     $this->setTemplateFile('config');
   }
 
   public function dispOembedAdminProviders()
   {
     Context::set('oembed_config', ConfigModel::getConfig());
+    Context::set('oembed_preview_active', ConfigModel::isPreviewModuleActive());
     Context::set('oembed_providers', Registry::getProviders());
     $this->setTemplateFile('providers');
   }
