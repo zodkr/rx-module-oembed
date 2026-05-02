@@ -3,8 +3,15 @@
 </div>
 
 @if (!empty($oembed_preview_active) || !empty($oembed_preview_conflict))
-  <div class="x_alert x_alert-warning">
+  <div class="x_alert x_alert-warning" style="margin-bottom: 12px;">
     {!! $lang->oembed_preview_active_warning !!}
+  </div>
+  <div class="x_panel" style="border:1px solid #f5c6cb; border-radius:6px; padding:12px 16px; margin-bottom: 16px; background:#fff8f8;">
+    <h3 style="margin-top:0;">{{ $lang->oembed_preview_disable_guide_title }}</h3>
+    {!! $lang->oembed_preview_disable_guide_steps !!}
+    <a class="x_btn x_btn-primary" href="{{ getUrl('', 'module', 'admin', 'act', 'dispModuleAdminContent') }}">
+      {{ $lang->oembed_preview_disable_guide_title }} →
+    </a>
   </div>
 @endif
 
