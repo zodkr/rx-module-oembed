@@ -40,9 +40,9 @@ class Controller extends Base
       $matchData = $matched['match'];
       $width = (int) Context::get('width') ?: null;
       $height = (int) Context::get('height') ?: null;
-      // provider 가 외부 메타정보를 가져올 수 있으면 (YouTube oEmbed 등) iframe
-      // 비율을 영상 본연 비율로 맞춘다. 클라이언트가 명시 dimension 을 보낸
-      // 경우 그 값이 우선이고, 응답은 비어 있는 축만 채운다.
+      // provider 가 외부 메타정보를 가져올 수 있으면 (YouTube oEmbed 등) 비율과
+      // 섬네일을 한 번에 받아 둔다. 클라이언트가 명시 dimension 을 보낸 경우
+      // 그 값이 우선이고, oEmbed 응답은 비어 있는 축만 채운다.
       $info = $provider->fetchInfo($url);
       if ($info !== null) {
         $width = $width ?? ($info['width'] ?? null);
@@ -56,12 +56,31 @@ class Controller extends Base
         return;
       }
 
+      // 섬네일 첨부 등록 — OG 카드 분기와 동일 패턴. 본문 markup 자체는 변하지
+      // 않고, file 모듈을 통해 첨부 파일 1개가 새 글에 묶인다 (게시판 자동
+      // 섬네일 / 첨부 목록 / RSS 미리보기 등에서 활용 가능). 실패해도 임베드
+      // 출력엔 영향 없음.
+      $editorSequence = (int) Context::get('editor_sequence');
+      $attachedFileSrl = 0;
+      if ($info !== null && !empty($info['thumbnail_url'])) {
+        $attached = ImageAttacher::attach($info['thumbnail_url'], $editorSequence);
+        if ($attached !== null) {
+          $attachedFileSrl = $attached['file_srl'];
+        }
+      }
+
       $providerShort = $this->shortName($provider);
+      // wrapper 의 data-oembed-file-srl 은 EventHandlers::pruneOrphanedOembedFiles
+      // 가 본문 저장 시점에 첨부를 보존하기 위한 anchor — 빠지면 고아로 회수된다.
+      $fileSrlAttr = $attachedFileSrl > 0
+        ? sprintf(' data-oembed-file-srl="%d"', $attachedFileSrl)
+        : '';
       $wrappedHtml = sprintf(
-        '<div editor_component="oembed" data-oembed-type="%s" data-oembed-provider="%s" data-url="%s" contenteditable="false">%s</div>',
+        '<div editor_component="oembed" data-oembed-type="%s" data-oembed-provider="%s" data-url="%s"%s contenteditable="false">%s</div>',
         htmlspecialchars($provider->type, ENT_QUOTES, 'UTF-8'),
         htmlspecialchars($providerShort, ENT_QUOTES, 'UTF-8'),
         htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
+        $fileSrlAttr,
         $embedHtml
       );
 
@@ -69,6 +88,15 @@ class Controller extends Base
       $this->add('wrapped_html', $wrappedHtml);
       $this->add('url', $url);
       $this->add('provider', $providerShort);
+      // OG 카드 분기와 동일: 새 upload_target_srl 을 클라이언트에 알려 폼의
+      // document_srl hidden 필드를 동기화하고, 응답 stale 시 procFileDelete 로
+      // 회수할 수 있게 file_srl 도 함께 내려보낸다.
+      if ($editorSequence && !empty($_SESSION['upload_info'][$editorSequence]->upload_target_srl)) {
+        $this->add('upload_target_srl', (int) $_SESSION['upload_info'][$editorSequence]->upload_target_srl);
+      }
+      if ($attachedFileSrl > 0) {
+        $this->add('file_srl', $attachedFileSrl);
+      }
       return;
     }
 
