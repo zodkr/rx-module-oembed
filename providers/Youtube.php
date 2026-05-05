@@ -46,10 +46,12 @@ class Youtube extends Provider
   {
     // 공식 oEmbed endpoint — 키 발급 불필요. width/height 은 영상의 실제 비율을
     // 반영해서 응답하므로(Shorts 9:16, 21:9 시네마틱 등 포함), 이 값을 그대로
-    // iframe width/height 으로 쓰면 비율이 자동으로 맞는다. maxwidth 를 안 주면
-    // 기본 200x113 같은 아주 작은 값으로 응답해 iframe 이 본문에서 작아 보이므로,
-    // Provider::getDimensions 의 기본 너비와 같은 640 을 한도로 지정한다.
-    $endpoint = 'https://www.youtube.com/oembed?url=' . rawurlencode($url) . '&maxwidth=640&format=json';
+    // iframe width/height 으로 쓰면 비율이 자동으로 맞는다. YouTube oEmbed 는
+    // maxwidth 와 maxheight 가 *둘 다* 지정될 때만 그 한도를 적용한다 — 한쪽만
+    // 주면 무시하고 356x200 같은 작은 기본값으로 응답한다. 1280x720 (16:9
+    // 풀HD) 한도로 주면: 가로형은 1280x720, Shorts 9:16 은 405x720, 21:9
+    // 시네마틱은 1280x549 등 비율은 유지하면서 본문에 적정 크기로 들어온다.
+    $endpoint = 'https://www.youtube.com/oembed?url=' . rawurlencode($url) . '&maxwidth=1280&maxheight=720&format=json';
     $payload = RemoteFetcher::fetchJson($endpoint);
     if ($payload === null) {
       return null;
