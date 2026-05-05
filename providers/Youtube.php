@@ -10,11 +10,13 @@ class Youtube extends Provider
   public string $type = self::TYPE_MULTIMEDIA;
   public bool $oembed = false;
   public array $hosts = ['www.youtube.com', 'youtube.com', 'm.youtube.com', 'youtu.be'];
+  // watch 패턴은 본문에 [^#] 가 들어가서 # delimiter 와 충돌하므로 ~ delimiter 사용.
+  // 다른 패턴도 일관성 있게 ~ 로 통일했다 (delimiter 와 본문 문자 충돌 방지).
   public array $patterns = [
-    '#(?:https?:)?//(?:www\.|m\.)?youtube\.com/watch\?(?:[^#]*&)?v=([\w-]{6,})#i' => ['video_id'],
-    '#(?:https?:)?//youtu\.be/([\w-]{6,})#i' => ['video_id'],
-    '#(?:https?:)?//(?:www\.|m\.)?youtube\.com/shorts/([\w-]{6,})#i' => ['video_id'],
-    '#(?:https?:)?//(?:www\.|m\.)?youtube\.com/embed/([\w-]{6,})#i' => ['video_id'],
+    '~(?:https?:)?//(?:www\.|m\.)?youtube\.com/watch\?(?:[^#]*&)?v=([\w-]{6,})~i' => ['video_id'],
+    '~(?:https?:)?//youtu\.be/([\w-]{6,})~i' => ['video_id'],
+    '~(?:https?:)?//(?:www\.|m\.)?youtube\.com/shorts/([\w-]{6,})~i' => ['video_id'],
+    '~(?:https?:)?//(?:www\.|m\.)?youtube\.com/embed/([\w-]{6,})~i' => ['video_id'],
   ];
 
   public function buildEmbed(array $matchData, ?int $width = null, ?int $height = null): string

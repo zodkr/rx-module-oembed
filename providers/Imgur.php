@@ -22,7 +22,8 @@ class Imgur extends Provider
     '#(?:https?:)?//(?:www\.|m\.)?imgur\.com/gallery/([\w]+)#i' => ['gallery_id'],
     '#(?:https?:)?//i\.imgur\.com/([\w]+)\.gifv#i' => ['gifv_id'],
     '#(?:https?:)?//i\.imgur\.com/([\w]+)\.(jpg|jpeg|png|gif|webp)#i' => ['image_id', 'image_ext'],
-    '#(?:https?:)?//(?:www\.|m\.)?imgur\.com/([\w]+)(?:[?#].*)?$#i' => ['single_id'],
+    // 본문에 [?#] 가 있어 # delimiter 와 충돌하므로 ~ delimiter 사용.
+    '~(?:https?:)?//(?:www\.|m\.)?imgur\.com/([\w]+)(?:[?#].*)?$~i' => ['single_id'],
   ];
 
   public function buildEmbed(array $matchData, ?int $width = null, ?int $height = null): string
