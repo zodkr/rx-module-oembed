@@ -18,6 +18,15 @@
 
   var URL_PATTERN = /(?:https?:)?\/\/[^\s<>"]+/i;
   var FAILED_HOSTS_KEY = 'oembed:failed_hosts';
+  var DEBUG = !!(window.localStorage && window.localStorage.getItem('oembed:debug'));
+
+  function debug() {
+    if (!DEBUG || !window.console) {
+      return;
+    }
+    var args = ['[oembed]'].concat(Array.prototype.slice.call(arguments));
+    (window.console.debug || window.console.log).apply(window.console, args);
+  }
 
   function loadFailedHosts() {
     try {
@@ -56,7 +65,12 @@
   }
 
   function csrfToken() {
-    return (window.rx_csrf_token || window.csrf_token || '').toString();
+    // Rhymix 는 common.js 에서 Rhymix.getCSRFToken() 으로 토큰을 노출한다.
+    // 일부 환경 (admin 화면 일부) 은 window.csrf_token 으로도 들어 있어 폴백.
+    if (window.Rhymix && typeof window.Rhymix.getCSRFToken === 'function') {
+      return (window.Rhymix.getCSRFToken() || '').toString();
+    }
+    return (window.csrf_token || '').toString();
   }
 
   function fetchOembed(url) {
@@ -88,12 +102,16 @@
     if (!data) {
       return null;
     }
-    var text = (data.dataValue || '').replace(/<[^>]+>/g, '').trim();
+    // CKEditor 4 는 paste 시 dataValue 를 <p>...</p> 등으로 감싸 넣고 끝에 개행을
+    // 남기는 경우가 많다. 태그 + 공백류 제거 후 단일 URL 만 남았는지 비교한다.
+    // URL_PATTERN 자체가 \s 를 배제하므로, 비교 대상도 공백 제거된 형태.
+    var text = (data.dataValue || '').replace(/<[^>]+>/g, '').replace(/\s+/g, '');
     if (!text) {
       return null;
     }
     var match = text.match(URL_PATTERN);
-    if (!match || match[0].length !== text.length) {
+    if (!match || match[0] !== text) {
+      debug('skip non-url paste:', text);
       return null;
     }
     return match[0];
@@ -143,15 +161,19 @@
     }
     var host = hostOf(url);
     if (host && loadFailedHosts()[host]) {
+      debug('skip blacklisted host:', host);
       return;
     }
+    debug('paste url:', url);
 
     evt.data.dataValue = placeholderHtml(url);
 
     fetchOembed(url).then(function (resp) {
       if ((resp.kind === 'embed' || resp.kind === 'card') && resp.wrapped_html) {
+        debug('replace placeholder:', resp.kind, url);
         replacePlaceholder(editor, url, resp.wrapped_html);
       } else {
+        debug('fetch failed:', url, resp);
         if (host) {
           rememberFailedHost(host);
         }
@@ -160,10 +182,28 @@
     });
   }
 
-  window.CKEDITOR.on('instanceReady', function (ev) {
-    var editor = ev.editor;
+  function attach(editor) {
+    if (editor._oembedAttached) {
+      return;
+    }
+    editor._oembedAttached = true;
     editor.on('paste', function (e) {
       handlePaste(editor, e);
     });
+  }
+
+  // 새로 생성되는 인스턴스
+  window.CKEDITOR.on('instanceReady', function (ev) {
+    attach(ev.editor);
   });
+
+  // _ckeditor.js 가 인스턴스 생성 후에 로드되는 경우 (Rhymix XeCkEditor 가 직접
+  // 인스턴스를 만든 뒤 자산을 잇따라 로드하는 시나리오) 를 위한 백업.
+  if (window.CKEDITOR.instances) {
+    for (var name in window.CKEDITOR.instances) {
+      if (Object.prototype.hasOwnProperty.call(window.CKEDITOR.instances, name)) {
+        attach(window.CKEDITOR.instances[name]);
+      }
+    }
+  }
 })(window);
