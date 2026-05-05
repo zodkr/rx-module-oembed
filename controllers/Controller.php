@@ -40,6 +40,14 @@ class Controller extends Base
       $matchData = $matched['match'];
       $width = (int) Context::get('width') ?: null;
       $height = (int) Context::get('height') ?: null;
+      // provider 가 외부 메타정보를 가져올 수 있으면 (YouTube oEmbed 등) iframe
+      // 비율을 영상 본연 비율로 맞춘다. 클라이언트가 명시 dimension 을 보낸
+      // 경우 그 값이 우선이고, 응답은 비어 있는 축만 채운다.
+      $info = $provider->fetchInfo($url);
+      if ($info !== null) {
+        $width = $width ?? ($info['width'] ?? null);
+        $height = $height ?? ($info['height'] ?? null);
+      }
       [$resolvedWidth, $resolvedHeight] = $provider->getDimensions($width, $height);
 
       $embedHtml = $provider->buildEmbed($matchData, $resolvedWidth, $resolvedHeight);
