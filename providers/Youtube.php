@@ -28,18 +28,20 @@ class Youtube extends Provider
     }
     [$w, $h] = $this->getDimensions($width, $height);
     $src = 'https://www.youtube.com/embed/' . rawurlencode($videoId);
-    // max-width:100% 로 좁은 컨테이너에서 자연스럽게 줄고, aspect-ratio + height:auto
-    // 로 width 가 줄어도 비율을 유지하며 height 가 자동 계산된다 (iframe 의 height
-    // attribute 는 큰 컨테이너에서의 fallback 으로만 작용). aspect-ratio CSS 는
-    // 모던 브라우저(Chrome 88+, Firefox 89+, Safari 15+)만 지원하지만 미지원 환경
-    // 에서도 max-width:100% 는 살아남아 가로 overflow 는 막는다.
+    // aspect-ratio 는 CSS spec 상 <width>/<height> 도 받지만 Rhymix HTMLFilter
+    // (common/framework/filters/HTMLFilter.php:504) 가 허용하는 값은 (a) 단일
+    // number, (b) 사전정의 enum (16/9, 9/16, 4/3 등), (c) 키워드 뿐이라 임의
+    // 비율 영상에서 <w>/<h> 표기는 sanitizer 단계에서 떨어진다. 단일 number 로
+    // 출력하면 CSS spec 에서 가로/세로 비율로 해석되어 동일 효과 + sanitizer
+    // CSS_Number 정의에 통과. max-width:100% + height:auto 가 함께 있으면
+    // 컨테이너 폭이 좁아져도 비율을 유지하며 자동 축소된다.
+    $ratio = $h > 0 ? (string) round($w / $h, 4) : '1.7778';
     return sprintf(
-      '<iframe src="%s" width="%d" height="%d" style="max-width:100%%;aspect-ratio:%d/%d;height:auto;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>',
+      '<iframe src="%s" width="%d" height="%d" style="max-width:100%%;aspect-ratio:%s;height:auto;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>',
       htmlspecialchars($src, ENT_QUOTES, 'UTF-8'),
       $w,
       $h,
-      $w,
-      $h
+      $ratio
     );
   }
 
