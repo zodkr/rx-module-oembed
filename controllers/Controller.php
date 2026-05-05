@@ -77,23 +77,50 @@ class Controller extends Base
     }
 
     $imageOverride = '';
+    $attachedFileSrl = 0;
+    $editorSequence = (int) Context::get('editor_sequence');
     if ($og['image'] !== '') {
-      $cached = ImageAttacher::attach($og['image']);
-      if ($cached !== null) {
-        $imageOverride = $cached;
+      // editor_sequence 가 함께 오면 file 모듈을 통해 본문 첨부로 등록한다.
+      // 비어 있거나 첨부 등록이 실패하면 attach() 가 null 을 돌려주고,
+      // CardRenderer 가 og.image 원본 URL 로 폴백한다.
+      $attached = ImageAttacher::attach($og['image'], $editorSequence);
+      if ($attached !== null) {
+        $imageOverride = $attached['url'];
+        $attachedFileSrl = $attached['file_srl'];
       }
     }
 
     $cardHtml = CardRenderer::render($og, $url, $imageOverride);
+    // 카드에서 사용자가 지운 OG 이미지 첨부를 글 저장 시점에 정리할 수 있도록
+    // file_srl 을 wrapper 에 박아 둔다 — EventHandlers::pruneOrphanedOembedFiles
+    // 가 본문에서 이 속성을 수집해 미참조 파일을 가려낸다.
+    $fileSrlAttr = $attachedFileSrl > 0
+      ? sprintf(' data-oembed-file-srl="%d"', $attachedFileSrl)
+      : '';
     $wrappedHtml = sprintf(
-      '<div editor_component="oembed" data-oembed-type="card" data-url="%s" contenteditable="false">%s</div>',
+      '<div editor_component="oembed" data-oembed-type="card" data-url="%s"%s contenteditable="false">%s</div>',
       htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
+      $fileSrlAttr,
       $cardHtml
     );
 
     $this->add('kind', 'card');
     $this->add('wrapped_html', $wrappedHtml);
     $this->add('url', $url);
+    // procFileUpload 와 동일한 패턴: 첨부가 등록돼 새 upload_target_srl 이 발급됐으면
+    // 응답에 실어 보내 클라이언트가 폼의 primary key (document_srl) hidden 필드를
+    // 갱신하게 한다. 이 동기화가 없으면 저장 시 document_srl 이 새로 발급되어
+    // setFilesValid 와 어긋나고 oembed 첨부가 고아 파일로 남는다.
+    if ($editorSequence && !empty($_SESSION['upload_info'][$editorSequence]->upload_target_srl)) {
+      $this->add('upload_target_srl', (int) $_SESSION['upload_info'][$editorSequence]->upload_target_srl);
+    }
+    // 응답이 stale 한 사이 (네트워크 지연, Ctrl+Z) 사용자가 placeholder 를 제거했다면
+    // 클라이언트가 이 file_srl 을 procFileDelete 로 회수해 고아 파일이 글 저장에
+    // 따라붙는 것을 막는다. file_srl 자체는 동일 editor_sequence 의 세션
+    // upload_target_srl 에 묶여 있으므로 다른 사용자의 첨부에 영향을 주지 않는다.
+    if ($attachedFileSrl > 0) {
+      $this->add('file_srl', $attachedFileSrl);
+    }
   }
 
   private function shortName(Provider $provider): string

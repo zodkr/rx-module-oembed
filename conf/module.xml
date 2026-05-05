@@ -13,6 +13,18 @@
   </actions>
   <eventHandlers>
     <eventHandler before="display" class="Controllers\EventHandlers" method="injectEditorAssets" />
+    <!-- 본문에서 사용자가 지운 oembed 카드의 OG 이미지 첨부를 정리한다.
+         after-trigger 를 쓰는 이유: before 시점은 본문 검증·정책·extra_vars
+         처리 전이라 그 단계들이 throw 하면 첨부 물리 파일만 삭제된 채
+         문서는 원래대로 남아 기존 카드 이미지가 깨진다. after 는
+         setFilesValid 가 끝난 직후·$oDB->commit() 직전이라 거의 모든
+         실패 경로가 이미 통과된 뒤다. setFilesValid 가 oembed 첨부도 isvalid='Y'
+         로 잠시 표식해 두지만 곧이어 우리 prune 이 file_srl 로 직접 지우므로
+         최종 결과는 같다. -->
+    <eventHandler after="document.insertDocument" class="Controllers\EventHandlers" method="pruneOrphanedOembedFiles" />
+    <eventHandler after="document.updateDocument" class="Controllers\EventHandlers" method="pruneOrphanedOembedFiles" />
+    <eventHandler after="comment.insertComment" class="Controllers\EventHandlers" method="pruneOrphanedOembedFiles" />
+    <eventHandler after="comment.updateComment" class="Controllers\EventHandlers" method="pruneOrphanedOembedFiles" />
   </eventHandlers>
   <menus>
     <menu name="oembed" type="all">

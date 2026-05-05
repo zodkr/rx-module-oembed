@@ -4,8 +4,10 @@ namespace Rhymix\Modules\Oembed\Controllers;
 
 use Rhymix\Modules\Oembed\Models\Config as ConfigModel;
 use Rhymix\Modules\Oembed\Models\Registry;
+use BaseObject;
 use Context;
 use EditorModel;
+use FileModel;
 use ModuleModel;
 
 class EventHandlers extends Base
@@ -125,6 +127,91 @@ class EventHandlers extends Base
       $compatibleMode ? 'true' : 'false'
     ));
     Context::addJsFile($modulePath . 'tpl/js/_render.js', '', '', 0, 'body');
+  }
+
+  /**
+   * 글/댓글 저장 직후 본문을 검사해 oembed 카드에서 제거된 OG 이미지 첨부를
+   * 정리한다.
+   *
+   * 등록 시점 (procOembedFetch → ImageAttacher::attach) 에 file 모듈에 정상
+   * 첨부로 들어가지만, 사용자가 카드를 본문에서 지우면 첨부 row 만 남아
+   * setFilesValid 가 그대로 isvalid='Y' 로 박제한다. 후크는
+   * *.insertDocument / *.updateDocument / *.insertComment /
+   * *.updateComment 의 **after**-trigger 에 묶여 있다.
+   *
+   * before 가 아닌 after 인 이유: before 시점은 본문 검증·보안 검사·
+   * extra_vars 업로드 등이 진행되기 전이라 그 단계가 throw 하면 첨부 물리
+   * 파일만 삭제된 채 문서는 원래대로 롤백돼 기존 카드 이미지가 깨진다
+   * (Storage::delete 는 비트랜잭셔널). after 는 setFilesValid 가 성공한 직후
+   * · $oDB->commit() 직전이라 거의 모든 실패 경로를 통과한 뒤다. 이론상
+   * commit 자체가 실패하면 같은 문제가 생길 수 있지만 그 확률은 무시 가능.
+   *
+   * setFilesValid 가 직전에 oembed 첨부의 isvalid 를 'Y' 로 바꿔 놓지만,
+   * 우리 prune 은 file_srl 로 deleteFile 을 호출해 row 자체를 지우므로
+   * isvalid 값은 영향 없다.
+   *
+   * oembed 첨부 식별은 source_filename 의 `oembed_<16hex>.<ext>` 패턴으로
+   * 한다. 별도 마커 컬럼(예: upload_target_type='oembed_image')을 두는
+   * 방식은 setFilesValid 가 매 저장마다 그 컬럼을 'doc' 로 덮어쓰기 때문에
+   * 재편집 시점에는 표식이 사라져 식별이 안 된다. ImageAttacher 가
+   * 발급하는 source_filename 은 어떤 흐름에서도 변경되지 않으므로 신규
+   * 저장과 N회 재편집 모두에서 일관되게 매칭된다. 일반 업로드 첨부는
+   * 이 패턴과 충돌할 가능성이 사실상 없다 (16자리 16진수).
+   *
+   * 흐름:
+   *   1. 본문에서 data-oembed-file-srl="N" 속성을 모두 추출 → 참조 set 구성
+   *   2. upload_target_srl 의 모든 파일 중 source_filename 이 oembed 패턴인
+   *      파일을 후보로 본다
+   *   3. 참조 set 에 없는 후보 → deleteFile 로 회수
+   *
+   * 사용자가 source-edit 으로 data-oembed-file-srl 속성을 임의로 지우면
+   * 그 첨부도 함께 정리된다 — 의도된 trade-off (속성이 깨진 카드는
+   * 본문에서도 동작하지 않으므로 첨부와의 일관성이 더 중요).
+   */
+  public function pruneOrphanedOembedFiles(&$obj)
+  {
+    $uploadTargetSrl = (int) ($obj->document_srl ?? 0);
+    if (!$uploadTargetSrl) {
+      $uploadTargetSrl = (int) ($obj->comment_srl ?? 0);
+    }
+    if (!$uploadTargetSrl) {
+      return new BaseObject();
+    }
+
+    $referenced = [];
+    $content = (string) ($obj->content ?? '');
+    if ($content !== '' && preg_match_all('/data-oembed-file-srl="(\d+)"/', $content, $matches)) {
+      $referenced = array_flip(array_map('intval', $matches[1]));
+    }
+
+    $files = FileModel::getFiles(
+      $uploadTargetSrl,
+      ['file_srl', 'source_filename']
+    );
+    if (!is_array($files) || $files === []) {
+      return new BaseObject();
+    }
+
+    $oFileController = \getController('file');
+    foreach ($files as $file) {
+      $fileSrl = (int) ($file->file_srl ?? 0);
+      if ($fileSrl <= 0) {
+        continue;
+      }
+      // ImageAttacher 가 발급한 패턴 (FilenameFilter::clean 통과 후 형태 그대로).
+      // FileModel::getFiles 는 source_filename 을 escape() 처리해서 내려보내지만
+      // [a-z0-9_.] 만 들어 있는 우리 파일명은 escape 후에도 동일하다.
+      $name = (string) ($file->source_filename ?? '');
+      if (!preg_match('/^oembed_[0-9a-f]{16}\.[a-z0-9]+$/i', $name)) {
+        continue;
+      }
+      if (isset($referenced[$fileSrl])) {
+        continue;
+      }
+      $oFileController->deleteFile($fileSrl);
+    }
+
+    return new BaseObject();
   }
 
   /**

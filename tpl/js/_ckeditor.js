@@ -91,10 +91,15 @@
     return (window.csrf_token || '').toString();
   }
 
-  function fetchOembed(url) {
+  function fetchOembed(url, editorSequence) {
     var body = new window.URLSearchParams();
     body.append('url', url);
     body.append('mid', window.current_mid || '');
+    if (editorSequence) {
+      // OG 카드의 이미지를 file 모듈을 통해 본문 첨부로 등록할 때 필요하다.
+      // 임베드 흐름엔 영향 없음 — 매칭 성공 시 서버측에서 무시한다.
+      body.append('editor_sequence', String(editorSequence));
+    }
     var token = csrfToken();
     if (token) {
       body.append('_rx_csrf_token', token);
@@ -159,10 +164,11 @@
   function replacePlaceholder(editor, url, html) {
     var node = findPlaceholder(editor, url);
     if (!node) {
-      return;
+      return false;
     }
     var newNode = window.CKEDITOR.dom.element.createFromHtml(html, editor.document);
     newNode.replace(node);
+    return true;
   }
 
   function removePlaceholder(editor, url) {
@@ -186,10 +192,18 @@
 
     evt.data.dataValue = placeholderHtml(url);
 
-    fetchOembed(url).then(function (resp) {
+    var editorSequence = (editor && editor.config && editor.config.xe_editor_sequence) || 0;
+    fetchOembed(url, editorSequence).then(function (resp) {
       if ((resp.kind === 'embed' || resp.kind === 'card') && resp.wrapped_html) {
-        debug('replace placeholder:', resp.kind, url);
-        replacePlaceholder(editor, url, resp.wrapped_html);
+        var replaced = replacePlaceholder(editor, url, resp.wrapped_html);
+        debug(replaced ? 'replace placeholder:' : 'placeholder gone, dropping response:', resp.kind, url);
+        if (replaced) {
+          syncUploadTargetSrl(editorSequence, resp.upload_target_srl);
+        } else if (resp.file_srl) {
+          // placeholder 가 응답 도착 전에 제거됐다 (Ctrl+Z 등). 서버에서 이미 등록된
+          // OG 이미지 첨부가 고아로 남아 글 저장 시 따라붙지 않도록 회수한다.
+          abortAttachment(editorSequence, resp.file_srl);
+        }
       } else {
         debug('fetch failed:', url, resp);
         if (host) {
@@ -198,6 +212,52 @@
         removePlaceholder(editor, url);
       }
     });
+  }
+
+  function abortAttachment(editorSequence, fileSrl) {
+    if (!editorSequence || !fileSrl) {
+      return;
+    }
+    var body = new window.URLSearchParams();
+    body.append('editor_sequence', String(editorSequence));
+    body.append('file_srl', String(fileSrl));
+    body.append('mid', window.current_mid || '');
+    var token = csrfToken();
+    if (token) {
+      body.append('_rx_csrf_token', token);
+    }
+    // procFileDelete 는 같은 editor_sequence 의 세션 upload_target_srl 에 매칭되는
+    // 파일만 삭제하므로 다른 사용자의 첨부를 건드릴 위험은 없다.
+    window.fetch('/index.php?module=file&act=procFileDelete', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': token,
+        'Accept': 'application/json'
+      },
+      body: body.toString()
+    }).catch(function () {
+      /* 회수 실패해도 사용자 흐름엔 영향 없음 — isvalid='N' 으로 cron 정리 대상 */
+    });
+  }
+
+  // 서버측에서 OG 이미지를 file 모듈 첨부로 등록한 경우, jquery.fileupload main.js
+  // 와 동일하게 폼의 primary key 입력값(document_srl)을 새 upload_target_srl 로
+  // 맞춰 둔다. 글 저장 시 document.controller 가 같은 srl 로 row 를 만들어야
+  // setFilesValid 가 첨부를 연결한다.
+  // - 신규 글: primary.value 가 빈값/"0" 이므로 새로 발급된 srl 로 갱신.
+  // - 편집 글: 서버측 attach 가 세션의 기존 upload_target_srl(=document_srl)
+  //   을 그대로 재사용하므로 같은 값을 다시 넣을 뿐 영향 없음.
+  function syncUploadTargetSrl(editorSequence, uploadTargetSrl) {
+    if (!editorSequence || !uploadTargetSrl) {
+      return;
+    }
+    var rel = window.editorRelKeys && window.editorRelKeys[editorSequence];
+    if (rel && rel.primary) {
+      rel.primary.value = uploadTargetSrl;
+    }
   }
 
   function attach(editor) {
