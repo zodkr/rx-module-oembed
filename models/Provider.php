@@ -57,6 +57,25 @@ abstract class Provider
   }
 
   /**
+   * URL 에 대해 외부 메타정보를 가져온다 (oEmbed endpoint, 자체 API 등).
+   *
+   * Controller 가 Registry::match hit 직후, buildEmbed 호출 전에 한 번 호출한다.
+   * 반환값은 두 곳에 쓰인다:
+   *   - width / height → buildEmbed 의 dimension 인자로 전달돼 iframe 비율을
+   *     실제 영상 비율에 맞춤 (없으면 Provider::getDimensions 의 type 별 기본값).
+   *   - thumbnail_url → ImageAttacher 입력으로 본문 첨부 파일 등록 (없으면 첨부 없음).
+   *
+   * 외부 호출은 반드시 RemoteFetcher 를 거쳐 SSRF 가드를 통과해야 한다.
+   * 네트워크/파싱 실패는 모두 null 반환으로 흡수 — 호출자는 폴백한다.
+   *
+   * @return array{width?: int, height?: int, thumbnail_url?: string}|null
+   */
+  public function fetchInfo(string $url): ?array
+  {
+    return null;
+  }
+
+  /**
    * 본문에 이 provider 의 임베드 마크업이 박제되어 있을 때, 글 보기
    * 페이지에서 자동으로 로드해야 할 외부 SDK 목록.
    *
