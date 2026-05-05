@@ -5,7 +5,10 @@
    스타일이 누락되지 않습니다.
    ───────────────────────────────────────────────────────────────────────── */
 .oembed-card {
-  display: block;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  align-items: stretch;
+  position: relative;
   margin: 1em 0;
   max-width: 720px;
   border: 1px solid #e1e4e8;
@@ -21,11 +24,15 @@
 }
 
 .oembed-card__link {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  align-items: stretch;
   text-decoration: none;
   color: inherit;
+}
+
+.oembed-card__link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 .oembed-card__thumb {
@@ -40,7 +47,7 @@
 }
 
 .oembed-card__body {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   gap: 6px;
   padding: 14px 18px;
@@ -79,12 +86,12 @@
 }
 
 /* 썸네일이 없는 경우 본문이 카드 전체를 차지하도록 grid 가 자동 조정됨 */
-.oembed-card__link:not(:has(.oembed-card__thumb)) {
+.oembed-card:not(:has(.oembed-card__thumb)) {
   grid-template-columns: 1fr;
 }
 
 @media (max-width: 600px) {
-  .oembed-card__link {
+  .oembed-card {
     grid-template-columns: 1fr;
   }
   .oembed-card__thumb {
