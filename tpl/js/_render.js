@@ -37,8 +37,8 @@
     var script = document.createElement('script');
     script.async = true;
     // crossOrigin 은 provider 가 명시한 경우에만 설정. CDN 이 CORS 헤더를
-    // 보내지 않는 SDK (Imgur, Instagram 등) 에 anonymous 모드를 강제하면
-    // 브라우저가 로딩을 차단한다.
+    // 보내지 않는 SDK (Instagram embed.js / X widgets.js 등) 에 anonymous
+    // 모드를 강제하면 브라우저가 로딩을 차단한다.
     if (asset.crossorigin === true) {
       script.crossOrigin = 'anonymous';
     }

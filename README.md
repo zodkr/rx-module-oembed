@@ -10,7 +10,7 @@ Rhymix 용 oEmbed 모듈. CKEditor 4 에서 사용자가 URL 을 붙여넣으면
 
 - **PHP 파일 한 개로 새 서비스 추가** — `providers/{Name}.php` 파일 하나만 추가하면
   소스 변경이나 빌드 없이 즉시 등록됩니다.
-- **기본 Provider 4종** — YouTube, Facebook, Instagram, Imgur (Meta 토큰 불필요).
+- **기본 Provider 4종** — YouTube, Facebook, Instagram, X (Meta 토큰 불필요).
 - **Open Graph 카드 자동 생성** — 매칭되는 provider 가 없는 URL 은 OG/Twitter Card
   메타를 추출해 미리보기 카드로 변환합니다.
 - **SSRF 가드** — 사설/예약 IP, localhost, 클라우드 메타데이터 엔드포인트
@@ -22,7 +22,7 @@ Rhymix 용 oEmbed 모듈. CKEditor 4 에서 사용자가 URL 을 붙여넣으면
   iframe 이 차단됩니다.
 - **preview 게시물 호환** — 호환 모드 ON 시 preview 시절에 저장된
   `preview_card_*` / `media_embed_wrapper` 마크업을 게시물 읽기 화면에서
-  같은 모양으로 출력하고, 인스타그램·페이스북·imgur 임베드의 SDK 도 자동
+  같은 모양으로 출력하고, 인스타그램·페이스북·X 임베드의 SDK 도 자동
   로드합니다. 새 사이트라면 꺼두어도 됩니다.
 
 ## 설치
@@ -104,7 +104,7 @@ CKEditor 4 외 에디터(예: Draft.js, Quill, TinyMCE 등)에서도
 | --- | --- |
 | **v0.1.0** | 모듈 골격, AbstractProvider, Registry, Youtube, procOembedFetch (embed), CKEditor JS, 에디터 컴포넌트, preview 충돌 검사, 어드민 빈 화면 |
 | **v0.2.0** | OG 파서, RemoteFetcher (SSRF 가드), CardRenderer, ImageAttacher, 카드 흐름 |
-| **v0.3.0** | Facebook / Instagram / Imgur Provider |
+| **v0.3.0** | Facebook / Instagram / X Provider |
 | **v0.4.0** | 어드민 UI 강화 (Provider 캐시 새로고침, 호스트 whitelist 상태 배지, 미등록 호스트 종합 안내, preview 비활성화 가이드). iframe whitelist 자동 등록 제거 — 명시적 승인 정책 도입 |
 | **v0.5.0** | 외부 컨트리뷰터 가이드, 다른 에디터 통합 매뉴얼 |
 
@@ -118,7 +118,7 @@ modules/oembed/
 ├── controllers/               Base / View / Controller / Admin / Install / EventHandlers
 ├── models/                    Config / Provider / Registry / RemoteFetcher /
 │                              OpenGraph / CardRenderer / ImageAttacher
-├── providers/                 Youtube / Facebook / Instagram / Imgur
+├── providers/                 Youtube / Facebook / Instagram / X
 ├── views/admin/               config.blade.php, providers.blade.php
 ├── tpl/js/                    _ckeditor.js
 ├── tpl/css/                   card.css

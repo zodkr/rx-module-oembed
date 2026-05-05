@@ -61,7 +61,7 @@ abstract class Provider
    *
    * crossorigin 은 선택. Facebook SDK 처럼 CDN 이 CORS 헤더를 보내고
    * 공식 스니펫이 `crossorigin="anonymous"` 를 요구하는 경우에만 true 로
-   * 둔다. Instagram embed.js / Imgur embed.js 처럼 CORS 헤더가 없는 SDK
+   * 둔다. Instagram embed.js / X widgets.js 처럼 CORS 헤더가 없는 SDK
    * 에 anonymous 모드를 켜면 브라우저가 로딩을 차단한다 (기본 false).
    *
    * normalize 는 선택. CKEditor ACF 나 HTMLPurifier 가 저장 시점에 우리

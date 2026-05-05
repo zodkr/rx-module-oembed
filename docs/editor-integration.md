@@ -109,7 +109,7 @@ placeholder 패턴을 쓰는 이유는 fetch 가 비동기이기 때문입니다
 대신 한 가지 한계가 있습니다: Provider 의 `buildEmbed` 결과나 카드 템플릿이
 나중에 바뀌어도 **이미 작성된 글에는 소급 반영되지 않습니다**. 본문을 다시
 저장해야 새 마크업으로 교체됩니다. 단, **외부 SDK `<script>` 만은 예외** —
-Instagram embed.js / Facebook sdk.js / Imgur embed.js 같은 활성화 스크립트는
+Instagram embed.js / Facebook sdk.js / X widgets.js 같은 활성화 스크립트는
 본문에 함께 저장되지 않고, 글 보기 페이지에서 `_render.js` 가
 `DOMContentLoaded` 시점에 본문 DOM 을 검사해 provider 가 선언한 selector 와
 매칭되는 노드가 있을 때만 `<head>` 에 동적으로 추가합니다. 본문에는 selector

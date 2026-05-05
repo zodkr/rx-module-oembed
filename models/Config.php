@@ -42,7 +42,7 @@ class Config
    * 화면에서 그대로 보이게 하기 위한 옵션이다.
    *
    * ON 일 때 EventHandlers 가 글 보기 페이지에 _render.js 를 주입해
-   * .instagram-media / .fb-post / .imgur-embed-pub 등 레거시 임베드의
+   * .instagram-media / .fb-post / .twitter-tweet 등 레거시 임베드의
    * SDK 를 자동 로드하고, iframe[data-src] 도 활성화한다.
    *
    * 새로 만드는 카드 마크업 자체는 토글과 무관하게 항상 같은 형태이며,

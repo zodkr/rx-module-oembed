@@ -125,7 +125,8 @@ class EventHandlers extends Base
    * 정상 렌더되어야 하므로 view 시점엔 전체 provider 를 검사한다.
    *
    * crossorigin 은 SDK CDN 이 CORS 헤더를 보낼 때만 true. CORS 미지원
-   * SDK (Imgur 등) 에 anonymous 모드를 강제하면 브라우저가 차단한다.
+   * SDK (Instagram embed.js / X widgets.js 등) 에 anonymous 모드를 강제하면
+   * 브라우저가 스크립트 로딩을 차단한다.
    *
    * normalize 는 sanitizer 가 떨어뜨린 클래스를 view 시점에 복원하기 위한
    * detect→addClass 규칙. SDK 검사보다 먼저 적용된다.
