@@ -28,9 +28,16 @@ class Youtube extends Provider
     }
     [$w, $h] = $this->getDimensions($width, $height);
     $src = 'https://www.youtube.com/embed/' . rawurlencode($videoId);
+    // max-width:100% 로 좁은 컨테이너에서 자연스럽게 줄고, aspect-ratio + height:auto
+    // 로 width 가 줄어도 비율을 유지하며 height 가 자동 계산된다 (iframe 의 height
+    // attribute 는 큰 컨테이너에서의 fallback 으로만 작용). aspect-ratio CSS 는
+    // 모던 브라우저(Chrome 88+, Firefox 89+, Safari 15+)만 지원하지만 미지원 환경
+    // 에서도 max-width:100% 는 살아남아 가로 overflow 는 막는다.
     return sprintf(
-      '<iframe src="%s" width="%d" height="%d" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>',
+      '<iframe src="%s" width="%d" height="%d" style="max-width:100%%;aspect-ratio:%d/%d;height:auto;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>',
       htmlspecialchars($src, ENT_QUOTES, 'UTF-8'),
+      $w,
+      $h,
       $w,
       $h
     );
@@ -48,10 +55,11 @@ class Youtube extends Provider
     // 반영해서 응답하므로(Shorts 9:16, 21:9 시네마틱 등 포함), 이 값을 그대로
     // iframe width/height 으로 쓰면 비율이 자동으로 맞는다. YouTube oEmbed 는
     // maxwidth 와 maxheight 가 *둘 다* 지정될 때만 그 한도를 적용한다 — 한쪽만
-    // 주면 무시하고 356x200 같은 작은 기본값으로 응답한다. 1280x720 (16:9
-    // 풀HD) 한도로 주면: 가로형은 1280x720, Shorts 9:16 은 405x720, 21:9
-    // 시네마틱은 1280x549 등 비율은 유지하면서 본문에 적정 크기로 들어온다.
-    $endpoint = 'https://www.youtube.com/oembed?url=' . rawurlencode($url) . '&maxwidth=1280&maxheight=720&format=json';
+    // 주면 무시하고 356x200 같은 작은 기본값으로 응답한다. 854x480 (16:9 480p
+    // 표준 — YouTube 의 default 임베드 크기와 같음) 으로 잡아 일반적인 본문
+    // 폭(720~1000) 안에 fit. 더 작은 컨테이너는 buildEmbed 의 inline aspect-ratio
+    // / max-width 가 처리한다.
+    $endpoint = 'https://www.youtube.com/oembed?url=' . rawurlencode($url) . '&maxwidth=854&maxheight=480&format=json';
     $payload = RemoteFetcher::fetchJson($endpoint);
     if ($payload === null) {
       return null;
