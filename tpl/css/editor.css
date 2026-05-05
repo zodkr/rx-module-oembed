@@ -5,97 +5,82 @@
    글 보기 페이지에는 적용되지 않으므로 출력 단계의 모양/상호작용 (재생,
    스크롤 등) 에는 영향이 없다.
 
+   .rx_ckeditor 는 Rhymix 가 CKEditor 인스턴스를 감싸는 외부 래퍼다
+   (modules/editor/skins/ckeditor/js/editor.js 의 $('.rx_ckeditor') 참고).
+   이 래퍼 아래에서만 적용되도록 묶어 게시물 출력 페이지의 동일 마크업에는
+   영향이 없게 한다.
+
    목적:
    1. <div editor_component="oembed"> wrapper 를 카드 모양 블록으로 시각화
-      해서, SDK 가 아직 실행되지 않는 에디터 안에서도 사용자가 "임베드된
-      콘텐츠다" 를 즉시 알아볼 수 있게 한다. (data-url 의 호스트로 provider
-      라벨을 표시한다.)
+      해서, SDK 가 실행되지 않는 에디터 안에서도 사용자가 "임베드된
+      콘텐츠다" 를 즉시 알아볼 수 있게 한다 (data-url 의 호스트로 provider
+      라벨 표시).
    2. iframe 내부와의 상호작용을 차단해 사용자가 wrapper 자체를 클릭/이동/
       삭제할 수 있게 한다. iframe 은 contenteditable=false 영향을 받지 않는
-      별도 브라우징 컨텍스트라 wrapper 만 false 로 두면 안에서 클릭이 살아
-      있다.
+      별도 browsing context 라 wrapper 만 false 로 두면 안에서 클릭이
+      살아 있다.
    3. wrapper 내부 텍스트 드래그 선택을 막아 카드 단위 선택만 가능하게.
    ───────────────────────────────────────────────────────────────────────── */
 
-/* CKEditor 4 wysiwyg 컨테이너:
-   - .cke_editable    iframe 모드의 body, divarea 모드의 contenteditable div
-   - .cke_wysiwyg_div divarea 모드 contenteditable div (구버전 호환) */
+.rx_ckeditor {
+  [editor_component="oembed"] {
+    position: relative;
+    margin: 1em 0;
+    padding: 2.25em 1em 1em;
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    background: #f6f8fa;
+    user-select: none;
 
-.cke_editable [editor_component="oembed"],
-.cke_wysiwyg_div [editor_component="oembed"] {
-  position: relative;
-  margin: 1em 0;
-  padding: 2.25em 1em 1em;
-  border: 1px solid #d0d7de;
-  border-radius: 8px;
-  background: #f6f8fa;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
+    /* 상단 라벨 — 기본값. provider 별로 content/배경을 덮어쓴다. */
+    &::before {
+      content: "임베드";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 0.4em 0.75em;
+      background: #e1e4e8;
+      color: #57606a;
+      font-size: 0.8em;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      border-radius: 7px 7px 0 0;
+    }
 
-/* 상단 라벨 — 기본값. provider 별 selector 에서 content/배경을 덮어쓴다. */
-.cke_editable [editor_component="oembed"]::before,
-.cke_wysiwyg_div [editor_component="oembed"]::before {
-  content: "임베드";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  padding: 0.4em 0.75em;
-  background: #e1e4e8;
-  color: #57606a;
-  font-size: 0.8em;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  border-radius: 7px 7px 0 0;
-}
+    &[data-url*="instagram.com"]::before {
+      content: "Instagram 임베드";
+      background: linear-gradient(45deg, #f9ce34, #ee2a7b, #6228d7);
+      color: #fff;
+    }
 
-/* Instagram */
-.cke_editable [editor_component="oembed"][data-url*="instagram.com"]::before,
-.cke_wysiwyg_div [editor_component="oembed"][data-url*="instagram.com"]::before {
-  content: "Instagram 임베드";
-  background: linear-gradient(45deg, #f9ce34, #ee2a7b, #6228d7);
-  color: #fff;
-}
+    &[data-url*="twitter.com"]::before,
+    &[data-url*="x.com"]::before {
+      content: "X 임베드";
+      background: #000;
+      color: #fff;
+    }
 
-/* X (Twitter) */
-.cke_editable [editor_component="oembed"][data-url*="twitter.com"]::before,
-.cke_editable [editor_component="oembed"][data-url*="x.com"]::before,
-.cke_wysiwyg_div [editor_component="oembed"][data-url*="twitter.com"]::before,
-.cke_wysiwyg_div [editor_component="oembed"][data-url*="x.com"]::before {
-  content: "X 임베드";
-  background: #000;
-  color: #fff;
-}
+    &[data-url*="facebook.com"]::before,
+    &[data-url*="fb.watch"]::before {
+      content: "Facebook 임베드";
+      background: #1877f2;
+      color: #fff;
+    }
 
-/* Facebook */
-.cke_editable [editor_component="oembed"][data-url*="facebook.com"]::before,
-.cke_editable [editor_component="oembed"][data-url*="fb.watch"]::before,
-.cke_wysiwyg_div [editor_component="oembed"][data-url*="facebook.com"]::before,
-.cke_wysiwyg_div [editor_component="oembed"][data-url*="fb.watch"]::before {
-  content: "Facebook 임베드";
-  background: #1877f2;
-  color: #fff;
-}
+    &[data-url*="youtube.com"]::before,
+    &[data-url*="youtu.be"]::before {
+      content: "YouTube 임베드";
+      background: #ff0000;
+      color: #fff;
+    }
 
-/* YouTube */
-.cke_editable [editor_component="oembed"][data-url*="youtube.com"]::before,
-.cke_editable [editor_component="oembed"][data-url*="youtu.be"]::before,
-.cke_wysiwyg_div [editor_component="oembed"][data-url*="youtube.com"]::before,
-.cke_wysiwyg_div [editor_component="oembed"][data-url*="youtu.be"]::before {
-  content: "YouTube 임베드";
-  background: #ff0000;
-  color: #fff;
-}
-
-/* wrapper 안 iframe / 카드 노드 클릭/포인터 차단 — wrapper 단위 선택을
-   가능하게 한다. iframe 은 별도 browsing context 라 contenteditable=false
-   가 자동으로 적용되지 않는다. */
-.cke_editable [editor_component="oembed"] iframe,
-.cke_editable [editor_component="oembed"] .oembed-card,
-.cke_wysiwyg_div [editor_component="oembed"] iframe,
-.cke_wysiwyg_div [editor_component="oembed"] .oembed-card {
-  pointer-events: none;
+    /* iframe / 카드 노드 클릭 차단 — wrapper 단위 선택을 가능하게 한다.
+       iframe 은 별도 browsing context 라 contenteditable=false 가 자동으로
+       적용되지 않는다. */
+    iframe,
+    .oembed-card {
+      pointer-events: none;
+    }
+  }
 }
