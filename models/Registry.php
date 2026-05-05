@@ -33,9 +33,9 @@ class Registry
   /**
    * Return registered providers keyed by class basename (e.g. 'Youtube').
    *
-   * paste/transHTML 시점에는 비활성화된 provider 를 제외해야 하지만,
-   * 어드민 화면은 운영자가 비활성화된 항목을 다시 켤 수 있어야 하므로
-   * 전체 목록이 필요하다. 두 호출 의도를 단일 인자로 분기한다.
+   * paste 시점에는 비활성화된 provider 를 제외해야 하지만, 어드민 화면은
+   * 운영자가 비활성화된 항목을 다시 켤 수 있어야 하므로 전체 목록이
+   * 필요하다. 두 호출 의도를 단일 인자로 분기한다.
    *
    * @return array<string, Provider>
    */

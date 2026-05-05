@@ -119,7 +119,6 @@ modules/oembed/
 ├── models/                    Config / Provider / Registry / RemoteFetcher /
 │                              OpenGraph / CardRenderer / ImageAttacher
 ├── providers/                 Youtube / Facebook / Instagram / Imgur
-├── components/oembed/         editor component (transHTML)
 ├── views/admin/               config.blade.php, providers.blade.php
 ├── tpl/js/                    _ckeditor.js
 ├── tpl/css/                   card.css

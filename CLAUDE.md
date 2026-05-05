@@ -21,8 +21,6 @@ A PSR-4 module (`Rhymix\Modules\Oembed\*`) that converts URLs into **iframe embe
 
 ## Core Data Flow (paste → stored body → output)
 
-You can't understand the behavior without looking at all three points together.
-
 1. **Paste (browser)** — `tpl/js/_ckeditor.js`
    - Only standalone URLs are extracted and immediately replaced with a `<p data-oembed-pending="1">` placeholder.
    - `oembed:failed_hosts` in `sessionStorage` (1-hour TTL) blocks re-attempts for the same host.
@@ -34,13 +32,7 @@ You can't understand the behavior without looking at all three points together.
    - On miss: `RemoteFetcher::fetchHtml` → `OpenGraph::parse` → `ImageAttacher::attach` (cache OG image locally) → `CardRenderer::render` → wrap with `data-kind="card"`.
    - Response shape: `{ kind: 'embed' | 'card' | 'fail', wrapped_html, url, provider? }`.
 
-3. **Output (body render)** — `components/oembed/oembed.class.php::transHTML`
-   - **Only the `data-*` attributes** of stored `editor_component="oembed"` markup are trusted; the embed is re-rendered every time. The HTML inside the body is ignored — the user could have tampered with it via the HTML mode.
-   - `embed`: looks up the Provider via `Registry::getProviders()[data-provider]` → re-runs `buildEmbed()`.
-   - `card`: rebuilds the OG struct from `data-{title,desc,image,source}` → re-runs `CardRenderer::render()`.
-   - Pre-v0.2.0 legacy cards with empty `data-*` attributes fall back to a plain link.
-
-> Bottom line: **the wrapped HTML stored in the body is regenerated every time.** If a Provider changes its embed markup, all existing posts render the new markup immediately (the saved div body is meaningless).
+3. **Output (body render)** — paste 시점에 만들어진 `wrapped_html` 이 **본문에 그대로 박제되어 그대로 출력**된다. Rhymix 에디터 코어가 `<div editor_component="oembed">` 를 후처리하지 않으므로(이 모듈은 별도 EditorHandler 를 등록하지 않는다), Provider 의 `buildEmbed` 결과가 바뀌어도 **기존 글에는 소급 반영되지 않는다**. 변경을 게시물에 반영하려면 본문을 다시 저장해야 한다. `data-*` 메타는 향후 도구를 위한 부수 정보일 뿐 출력에 사용되지 않는다.
 
 ## Provider Extension Contract
 
@@ -110,8 +102,8 @@ This module has no separate build/test scripts. It does not use `vendor/` or `no
 - **`failed_hosts` looking like a permanent ban** — TTL is 1 hour (commit `b3b44f8`). To clear immediately, delete the sessionStorage entry.
 - **iframe clicks not working inside the CKEditor area** — Intentional. `tpl/css/editor.css` blocks iframe interaction only inside the wysiwyg area (commit `c632b5c`). It is not injected on the read page, so playback there works normally.
 - **Assets not injected because `act` is empty** — Make sure the `default_index_act` fallback in `EventHandlers::injectEditorAssets` is always traversed (commit `9bf9521`).
-- **Body shows a bare `<div>` instead of a card/embed** — Either the module is disabled or `editor_component` was dropped from the transHTML routing. Check the `<component>` registration in `components/oembed/info.xml` first.
+- **Body shows a bare `<div>` instead of a card/embed** — paste 시점의 `wrapped_html` 이 그대로 박제되므로 `<iframe>` 또는 카드 마크업이 본문에 같이 저장되어 있어야 한다. 본문을 외부에서 가공하거나 sanitizer 가 자식 노드를 떨어뜨리면 빈 div 만 남는다. 또한 iframe 의 호스트가 시스템 → 보안 → 외부 멀티미디어 허용에 등록되지 않았다면 `MediaFilter` 가 출력 단계에서 iframe 을 제거한다.
 
 ## Other Editor Integrations
 
-The integration guide for editors other than CKEditor 4 lives in `docs/editor-integration.md`. The essentials: call `procOembedFetch`, then insert `wrapped_html` into the body via the editor's safe-insertion API. Output transformation of stored markup is handled automatically by `transHTML`, so do not implement a separate output transform on the integration side.
+The integration guide for editors other than CKEditor 4 lives in `docs/editor-integration.md`. The essentials: call `procOembedFetch`, then insert `wrapped_html` into the body via the editor's safe-insertion API. The wrapped markup is stored as-is and rendered as-is — no server-side post-processing happens — so the integration side just needs to make sure the editor's sanitizer does not strip the inner `<iframe>` / card nodes.
