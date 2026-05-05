@@ -21,7 +21,7 @@ class RemoteFetcher
   public const MAX_HTML_BYTES = 2 * 1024 * 1024; // 2MB
   public const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
   public const URL_MAX_LENGTH = 2048;
-  public const USER_AGENT = 'Mozilla/5.0 (compatible; OembedBot/0.1; +https://github.com/zodkr/rx-module-oembed)';
+  public const USER_AGENT = 'Mozilla/5.0 (compatible; oEmbedBot/0.1; +https://github.com/zodkr/rx-module-oembed)';
 
   /**
    * Normalize a user-supplied URL.
