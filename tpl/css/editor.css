@@ -5,14 +5,23 @@
    글 보기 페이지에는 적용되지 않으므로 출력 단계의 모양/상호작용 (재생,
    스크롤 등) 에는 영향이 없다.
 
-   스코프 = `.rhymix_content.cke_editable` — CKEditor 4 가 iframe 모드에서
-   body 에 자동으로 붙이는 `cke_editable` 클래스와, Rhymix CKEditor 의
-   `bodyClass: 'rhymix_content xe_content editable'` (modules/editor/tpl/js/
-   editor.app.js:22) 가 같은 body 요소에 붙는 점을 이용해 단일 셀렉터로
-   매칭한다. CKEditor 4 의 `bodyClass` 는 divarea 모드에서도 contenteditable
-   div 에 동일하게 적용되므로 두 모드 모두 커버된다. 호스트 페이지의 외부
-   래퍼(`.rx_ckeditor`) 로 스코프를 잡으면 iframe 문서 안엔 그 조상이
-   존재하지 않아 셀렉터가 매칭되지 않는다.
+   스코프는 두 가지 — CKEditor 4 가 두 가지 모드를 갖기 때문이다.
+
+   * iframe 모드 (대부분의 데스크탑 환경): wysiwyg 가 별도 iframe 의 body 다.
+     CKEditor 가 자동으로 body 에 `cke_editable` 을 붙이고, Rhymix CKEditor 의
+     `bodyClass: 'rhymix_content xe_content editable'` (modules/editor/tpl/js/
+     editor.app.js:22) 도 같은 body 에 추가된다 → `.rhymix_content.cke_editable`
+     단일 셀렉터로 매칭. 호스트 페이지의 `<link rel=stylesheet>` 들은
+     editor.js:64 의 contentsCss push 로 iframe 문서에도 함께 로드되므로
+     이 파일이 그대로 적용된다.
+   * divarea 모드 (iOS 등): wysiwyg 가 호스트 페이지 안의 `<div class=
+     "cke_wysiwyg_div cke_editable …">` 다. 이 모드에선 `bodyClass` 가
+     적용되지 않아 `.rhymix_content` 가 없으므로 (Rhymix 자체도 editor.js:94
+     에서 `\.rhymix_content\.editable` → `.cke_wysiwyg_div` 로 치환해 처리)
+     `.cke_wysiwyg_div` 셀렉터를 별도로 둔다.
+
+   호스트 페이지 외부 래퍼(`.rx_ckeditor`) 로 스코프를 잡으면 iframe 문서
+   안엔 그 조상이 존재하지 않아 셀렉터가 매칭되지 않는다.
 
    목적:
    1. <div editor_component="oembed"> wrapper 를 카드 모양 블록으로 시각화
@@ -26,7 +35,8 @@
    3. wrapper 내부 텍스트 드래그 선택을 막아 카드 단위 선택만 가능하게.
    ───────────────────────────────────────────────────────────────────────── */
 
-.rhymix_content.cke_editable {
+.rhymix_content.cke_editable,
+.cke_wysiwyg_div {
   [editor_component="oembed"] {
     position: relative;
     margin: 1em 0;
