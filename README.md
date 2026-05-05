@@ -121,7 +121,7 @@ modules/oembed/
 ├── providers/                 Youtube / Facebook / Instagram / X
 ├── views/admin/               config.blade.php, providers.blade.php
 ├── tpl/js/                    _ckeditor.js
-├── tpl/css/                   card.css
+├── tpl/css/                   style.css
 └── lang/                      ko.php, en.php
 ```
 

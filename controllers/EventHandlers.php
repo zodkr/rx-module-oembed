@@ -26,7 +26,7 @@ class EventHandlers extends Base
    * before display 트리거.
    *
    * 글쓰기/댓글 페이지에서는 paste 훅(_ckeditor.js) 을 주입한다.
-   * 글 보기 페이지에서는 (1) card.css, (2) `_render.js` + provider 자산 맵을
+   * 글 보기 페이지에서는 (1) style.css, (2) `_render.js` + provider 자산 맵을
    * 주입한다. `_render.js` 는 DOMContentLoaded 시점에 본문 DOM 을 스캔해
    * 매칭된 외부 SDK 를 `document.head` 에 동적 삽입한다.
    *
@@ -86,17 +86,18 @@ class EventHandlers extends Base
       if ($editorSkin !== 'ckeditor') {
         return;
       }
-      Context::addCssFile($modulePath . 'tpl/css/card.css');
+      Context::addCssFile($modulePath . 'tpl/css/style.css');
       if (is_file(\RX_BASEDIR . ltrim($skinCssPath, '/'))) {
         Context::addCssFile($skinCssPath);
       }
-      // editor.css 는 wysiwyg 영역 (iframe / divarea) 안에서만 의미가 있고,
-      // Context::addCssFile 로 외부 로드 시 Rhymix 가 minify 산출물의 mtime
-      // 으로 ?t= 캐시버스터를 박는데 그 mtime 이 stale 하게 굳는 환경에서는
-      // CKEditor 가 옛 URL 만 contentsCss 로 전달해 갱신이 안 된다. 매 요청마다
-      // 파일 내용을 그대로 읽어 inline payload 로 emit 하고, _ckeditor.js 가
-      // CKEDITOR.addCss + 인스턴스 document 에 직접 <style> 주입한다.
-      $editorCssFullPath = \RX_BASEDIR . 'modules/oembed/tpl/css/editor.css';
+      // style.css 의 editor 전용 규칙은 wysiwyg 영역 (iframe / divarea) 안에서만
+      // 의미가 있고, Context::addCssFile 로 외부 로드 시 Rhymix 가 minify
+      // 산출물의 mtime 으로 ?t= 캐시버스터를 박는데 그 mtime 이 stale 하게 굳는
+      // 환경에서는 CKEditor 가 옛 URL 만 contentsCss 로 전달해 갱신이 안 된다.
+      // 매 요청마다 파일 내용을 그대로 읽어 inline payload 로 emit 하고,
+      // _ckeditor.js 가 CKEDITOR.addCss + 인스턴스 document 에 직접 <style>
+      // 주입한다.
+      $editorCssFullPath = \RX_BASEDIR . 'modules/oembed/tpl/css/style.css';
       if (is_file($editorCssFullPath)) {
         $editorCssContent = (string) file_get_contents($editorCssFullPath);
         Context::addHtmlHeader('<script>window.oembedEditorCss=' . json_encode($editorCssContent, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) . ';</script>');
@@ -107,7 +108,7 @@ class EventHandlers extends Base
     }
 
     // VIEW_ACTS — 본문에 카드/임베드 마크업이 노출되는 페이지
-    Context::addCssFile($modulePath . 'tpl/css/card.css');
+    Context::addCssFile($modulePath . 'tpl/css/style.css');
     if (is_file(\RX_BASEDIR . ltrim($skinCssPath, '/'))) {
       Context::addCssFile($skinCssPath);
     }

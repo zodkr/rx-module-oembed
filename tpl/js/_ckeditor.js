@@ -275,7 +275,7 @@
     });
   }
 
-  // editor.css 본문은 EventHandlers 가 매 요청마다 파일을 읽어 inline 으로
+  // style.css 본문은 EventHandlers 가 매 요청마다 파일을 읽어 inline 으로
   // window.oembedEditorCss 에 박아 넣는다. 외부 CSS 로드의 ?t= 캐시버스터가
   // stale mtime 으로 굳는 환경을 우회하기 위함이다.
   // - 신규 인스턴스: CKEDITOR.addCss 가 wysiwyg 스타일시트 버퍼에 누적해 둔다.
