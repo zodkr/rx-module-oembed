@@ -23,78 +23,83 @@
    호스트 페이지 외부 래퍼(`.rx_ckeditor`) 로 스코프를 잡으면 iframe 문서
    안엔 그 조상이 존재하지 않아 셀렉터가 매칭되지 않는다.
 
-   목적:
-   1. <div editor_component="oembed"> wrapper 를 카드 모양 블록으로 시각화
-      해서, SDK 가 실행되지 않는 에디터 안에서도 사용자가 "임베드된
-      콘텐츠다" 를 즉시 알아볼 수 있게 한다 (data-url 의 호스트로 provider
-      라벨 표시).
-   2. iframe 내부와의 상호작용을 차단해 사용자가 wrapper 자체를 클릭/이동/
-      삭제할 수 있게 한다. iframe 은 contenteditable=false 영향을 받지 않는
-      별도 browsing context 라 wrapper 만 false 로 두면 안에서 클릭이
-      살아 있다.
-   3. wrapper 내부 텍스트 드래그 선택을 막아 카드 단위 선택만 가능하게.
+   타입 분기 (Controller 가 wrapper 의 data-oembed-type 으로 박는다):
+   - "social"     — Instagram / Facebook / X 의 blockquote/div 임베드.
+                    SDK 가 에디터 안에서 동작하지 않아 본문이 "View on …"
+                    링크로만 보이므로, 작성자가 임베드인지 알 수 있게
+                    라벨 박스로 시각화한다 (블록 프레임 + provider 라벨).
+   - "multimedia" — YouTube 같은 iframe 임베드. iframe 자체가 이미 시각적으로
+                    임베드임을 분명히 보여주므로 별도 프레임/라벨 추가하지
+                    않는다 (사용자 요청).
+   - "card"       — provider 매칭 실패 시 OG 메타로 만든 미리보기 카드.
+                    카드 마크업 자체에 이미지/제목/요약이 들어 있어 시각적
+                    구분이 명확하므로 추가 프레임 없음.
+
+   모든 타입 공통:
+   - wrapper 에 contenteditable="false" 가 붙어 있어 (Controller 출력)
+     CKEditor 가 단일 위젯으로 다룬다 — wrapper 단위 선택/삭제/이동 가능.
+   - 그러나 iframe 은 별도 browsing context 라 contenteditable=false 가
+     적용되지 않으므로, pointer-events: none 으로 클릭/스크롤을 막아
+     wrapper 선택을 방해하지 않게 한다.
+   - 텍스트 드래그 선택도 막아 카드 단위 선택을 강제한다.
    ───────────────────────────────────────────────────────────────────────── */
 
 .rhymix_content.cke_editable,
 .cke_wysiwyg_div {
+  /* 모든 타입 공통 — 위젯 상호작용 보호 */
   [editor_component="oembed"] {
-    position: relative;
-    margin: 1em 0;
-    padding: 2.25em 1em 1em;
-    border: 1px solid #d0d7de;
-    border-radius: 8px;
-    background: #f6f8fa;
     user-select: none;
 
-    /* 상단 라벨 — 기본값. provider 별로 content/배경을 덮어쓴다. */
+    iframe,
+    .oembed-card {
+      pointer-events: none;
+    }
+  }
+
+  /* social 타입 — 블록 프레임 + provider 라벨 */
+  [editor_component="oembed"][data-oembed-type="social"] {
+    position: relative;
+    margin: 1em 0;
+    padding: 1em 0.75em;
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f6f8fa;
+
+    /* 본문 fallback (View on … 링크) 는 라벨로 충분하므로 가린다. */
+    & > blockquote {
+      display: none;
+    }
+
+    /* 상단 라벨 — 기본값. provider 별 selector 가 content/배경을 덮어쓴다. */
     &::before {
       content: "임베드";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      display: block;
       padding: 0.4em 0.75em;
+      margin: -1em -0.75em 0;
       background: #e1e4e8;
       color: #57606a;
       font-size: 0.8em;
       font-weight: 600;
       letter-spacing: 0.02em;
-      border-radius: 7px 7px 0 0;
     }
 
-    &[data-url*="instagram.com"]::before {
+    &[data-oembed-provider="Instagram"]::before {
       content: "Instagram 임베드";
       background: linear-gradient(45deg, #f9ce34, #ee2a7b, #6228d7);
       color: #fff;
     }
 
-    &[data-url*="twitter.com"]::before,
-    &[data-url*="x.com"]::before {
+    &[data-oembed-provider="X"]::before {
       content: "X 임베드";
       background: #000;
       color: #fff;
     }
 
-    &[data-url*="facebook.com"]::before,
-    &[data-url*="fb.watch"]::before {
+    &[data-oembed-provider="Facebook"]::before {
       content: "Facebook 임베드";
       background: #1877f2;
       color: #fff;
-    }
-
-    &[data-url*="youtube.com"]::before,
-    &[data-url*="youtu.be"]::before {
-      content: "YouTube 임베드";
-      background: #ff0000;
-      color: #fff;
-    }
-
-    /* iframe / 카드 노드 클릭 차단 — wrapper 단위 선택을 가능하게 한다.
-       iframe 은 별도 browsing context 라 contenteditable=false 가 자동으로
-       적용되지 않는다. */
-    iframe,
-    .oembed-card {
-      pointer-events: none;
     }
   }
 }

@@ -48,8 +48,11 @@ class Controller extends Base
         return;
       }
 
+      $providerShort = $this->shortName($provider);
       $wrappedHtml = sprintf(
-        '<div editor_component="oembed" data-url="%s">%s</div>',
+        '<div editor_component="oembed" data-oembed-type="%s" data-oembed-provider="%s" data-url="%s" contenteditable="false">%s</div>',
+        htmlspecialchars($provider->type, ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars($providerShort, ENT_QUOTES, 'UTF-8'),
         htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
         $embedHtml
       );
@@ -57,7 +60,7 @@ class Controller extends Base
       $this->add('kind', 'embed');
       $this->add('wrapped_html', $wrappedHtml);
       $this->add('url', $url);
-      $this->add('provider', $this->shortName($provider));
+      $this->add('provider', $providerShort);
       return;
     }
 
@@ -83,7 +86,7 @@ class Controller extends Base
 
     $cardHtml = CardRenderer::render($og, $url, $imageOverride);
     $wrappedHtml = sprintf(
-      '<div editor_component="oembed" data-url="%s">%s</div>',
+      '<div editor_component="oembed" data-oembed-type="card" data-url="%s" contenteditable="false">%s</div>',
       htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
       $cardHtml
     );
