@@ -168,6 +168,11 @@
     }
     var newNode = window.CKEDITOR.dom.element.createFromHtml(html, editor.document);
     newNode.replace(node);
+    // 임베드 바로 다음 줄에 커서를 둘 수 있도록 빈 단락을 끼워 넣는다.
+    // contenteditable=false 인 위젯 직후엔 caret 진입이 까다로워서 후속 입력이
+    // 위젯 내부로 빨려 들어가거나 아예 막히는 케이스를 방지한다.
+    var spacer = window.CKEDITOR.dom.element.createFromHtml('<p>&nbsp;</p>', editor.document);
+    spacer.insertAfter(newNode);
     return true;
   }
 
