@@ -88,9 +88,17 @@ class EventHandlers extends Base
       if (is_file(\RX_BASEDIR . ltrim($skinCssPath, '/'))) {
         Context::addCssFile($skinCssPath);
       }
-      // 에디터 한정 — wysiwyg 영역 안 iframe 클릭 차단/사용자 선택 방지.
-      // 글 보기 페이지에는 주입되지 않으므로 재생/스크롤 등 정상 상호작용 유지.
-      Context::addCssFile($modulePath . 'tpl/css/editor.css');
+      // editor.css 는 wysiwyg 영역 (iframe / divarea) 안에서만 의미가 있고,
+      // Context::addCssFile 로 외부 로드 시 Rhymix 가 minify 산출물의 mtime
+      // 으로 ?t= 캐시버스터를 박는데 그 mtime 이 stale 하게 굳는 환경에서는
+      // CKEditor 가 옛 URL 만 contentsCss 로 전달해 갱신이 안 된다. 매 요청마다
+      // 파일 내용을 그대로 읽어 inline payload 로 emit 하고, _ckeditor.js 가
+      // CKEDITOR.addCss + 인스턴스 document 에 직접 <style> 주입한다.
+      $editorCssFullPath = \RX_BASEDIR . 'modules/oembed/tpl/css/editor.css';
+      if (is_file($editorCssFullPath)) {
+        $editorCssContent = (string) file_get_contents($editorCssFullPath);
+        Context::addHtmlHeader('<script>window.oembedEditorCss=' . json_encode($editorCssContent, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) . ';</script>');
+      }
       Context::addJsFile($modulePath . 'tpl/js/_ckeditor.js', '', '', 0, 'body');
       Context::addHtmlHeader('<script>window.current_mid=' . json_encode((string) $mid) . ';</script>');
       return;

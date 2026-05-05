@@ -210,9 +210,42 @@
     });
   }
 
+  // editor.css 본문은 EventHandlers 가 매 요청마다 파일을 읽어 inline 으로
+  // window.oembedEditorCss 에 박아 넣는다. 외부 CSS 로드의 ?t= 캐시버스터가
+  // stale mtime 으로 굳는 환경을 우회하기 위함이다.
+  // - 신규 인스턴스: CKEDITOR.addCss 가 wysiwyg 스타일시트 버퍼에 누적해 둔다.
+  // - 기존 인스턴스: 그 버퍼는 이미 비워져서, 인스턴스의 document 에 직접
+  //   <style> 을 추가해야 적용된다.
+  function injectCssIntoInstance(editor) {
+    if (editor._oembedCssInjected) {
+      return;
+    }
+    var css = window.oembedEditorCss;
+    if (typeof css !== 'string' || !css) {
+      return;
+    }
+    var doc = editor.document && editor.document.$;
+    if (!doc) {
+      return;
+    }
+    var style = doc.createElement('style');
+    style.setAttribute('type', 'text/css');
+    style.appendChild(doc.createTextNode(css));
+    var head = doc.head || doc.getElementsByTagName('head')[0] || doc.documentElement;
+    if (head) {
+      head.appendChild(style);
+      editor._oembedCssInjected = true;
+    }
+  }
+
+  if (typeof window.CKEDITOR.addCss === 'function' && typeof window.oembedEditorCss === 'string' && window.oembedEditorCss) {
+    window.CKEDITOR.addCss(window.oembedEditorCss);
+  }
+
   // 새로 생성되는 인스턴스
   window.CKEDITOR.on('instanceReady', function (ev) {
     attach(ev.editor);
+    injectCssIntoInstance(ev.editor);
   });
 
   // _ckeditor.js 가 인스턴스 생성 후에 로드되는 경우 (Rhymix XeCkEditor 가 직접
@@ -221,6 +254,7 @@
     for (var name in window.CKEDITOR.instances) {
       if (Object.prototype.hasOwnProperty.call(window.CKEDITOR.instances, name)) {
         attach(window.CKEDITOR.instances[name]);
+        injectCssIntoInstance(window.CKEDITOR.instances[name]);
       }
     }
   }
