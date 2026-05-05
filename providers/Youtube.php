@@ -3,6 +3,7 @@
 namespace Rhymix\Modules\Oembed\Providers;
 
 use Rhymix\Modules\Oembed\Models\Provider;
+use Rhymix\Modules\Oembed\Models\RemoteFetcher;
 
 class Youtube extends Provider
 {
@@ -39,5 +40,32 @@ class Youtube extends Provider
   {
     // buildEmbed 가 출력하는 iframe 의 src 호스트만 화이트리스트에 필요.
     return ['www.youtube.com'];
+  }
+
+  public function fetchInfo(string $url): ?array
+  {
+    // 공식 oEmbed endpoint — 키 발급 불필요. width/height 은 영상의 실제 비율을
+    // 반영해서 응답하므로(Shorts 9:16, 21:9 시네마틱 등 포함), 이 값을 그대로
+    // iframe width/height 으로 쓰면 비율이 자동으로 맞는다.
+    $endpoint = 'https://www.youtube.com/oembed?url=' . rawurlencode($url) . '&format=json';
+    $fetched = RemoteFetcher::fetchHtml($endpoint);
+    if ($fetched === null) {
+      return null;
+    }
+    $payload = json_decode($fetched['body'], true);
+    if (!is_array($payload)) {
+      return null;
+    }
+    $info = [];
+    if (isset($payload['width']) && is_numeric($payload['width'])) {
+      $info['width'] = (int) $payload['width'];
+    }
+    if (isset($payload['height']) && is_numeric($payload['height'])) {
+      $info['height'] = (int) $payload['height'];
+    }
+    if (!empty($payload['thumbnail_url']) && is_string($payload['thumbnail_url'])) {
+      $info['thumbnail_url'] = $payload['thumbnail_url'];
+    }
+    return $info ?: null;
   }
 }
