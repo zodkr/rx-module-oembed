@@ -76,6 +76,9 @@ class EventHandlers extends Base
       if (is_file(\RX_BASEDIR . ltrim($skinCssPath, '/'))) {
         Context::addCssFile($skinCssPath);
       }
+      // 에디터 한정 — wysiwyg 영역 안 iframe 클릭 차단/사용자 선택 방지.
+      // 글 보기 페이지에는 주입되지 않으므로 재생/스크롤 등 정상 상호작용 유지.
+      Context::addCssFile($modulePath . 'tpl/css/editor.css');
       Context::addJsFile($modulePath . 'tpl/js/_ckeditor.js', '', '', 0, 'body');
       Context::addHtmlHeader('<script>window.current_mid=' . json_encode((string) $mid) . ';</script>');
       return;
