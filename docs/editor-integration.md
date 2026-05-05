@@ -37,7 +37,7 @@ url=<붙여넣은 URL>
 // 1) provider 매칭 성공 → iframe/blockquote 임베드
 {
   "kind": "embed",
-  "wrapped_html": "<div editor_component=\"oembed\" data-kind=\"embed\" data-url=\"...\" data-provider=\"Youtube\" data-width=\"640\" data-height=\"360\"><iframe ...></iframe></div>",
+  "wrapped_html": "<div editor_component=\"oembed\" data-url=\"...\"><iframe ...></iframe></div>",
   "url": "https://www.youtube.com/watch?v=...",
   "provider": "Youtube"
 }
@@ -45,13 +45,19 @@ url=<붙여넣은 URL>
 // 2) provider 매칭 실패 + OG 메타 발견 → 미리보기 카드
 {
   "kind": "card",
-  "wrapped_html": "<div editor_component=\"oembed\" data-kind=\"card\" data-url=\"...\"><div class=\"preview_card_wrapper\" contenteditable=\"false\">...</div></div>",
+  "wrapped_html": "<div editor_component=\"oembed\" data-url=\"...\"><div class=\"preview_card_wrapper\" contenteditable=\"false\">...</div></div>",
   "url": "https://example.com/article"
 }
 
 // 3) 둘 다 실패
 { "kind": "fail" }
 ```
+
+응답으로 받은 `wrapped_html` 의 `<div>` wrapper 에는 `editor_component="oembed"`
+(에디터 위젯 식별용) 와 `data-url` (참조용) 만 붙어 있습니다. 임베드 차원이나 카드
+메타 같은 정보는 안쪽 HTML 에 이미 포함되어 있으므로 wrapper 단계에서 중복으로
+가져갈 필요가 없습니다. 종류(embed/card) 와 provider 이름은 응답 JSON 의 `kind`,
+`provider` 필드에서 받습니다.
 
 ## 2. 통합 시 권장 흐름
 

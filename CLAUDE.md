@@ -28,11 +28,12 @@ A PSR-4 module (`Rhymix\Modules\Oembed\*`) that converts URLs into **iframe embe
    - On response, the placeholder is swapped via `CKEDITOR.dom.element.createFromHtml` — **never inject via `innerHTML` directly** (that bypasses the CKEditor sanitizer).
 
 2. **Conversion (server)** — `controllers/Controller.php::procOembedFetch`
-   - `RemoteFetcher::normalizeUrl` → `Registry::match` is attempted → on a hit, the `provider->buildEmbed()` output is **wrapped in `<div editor_component="oembed" data-kind="embed" data-url=… data-provider=… data-width=… data-height=…>`** and returned.
-   - On miss: `RemoteFetcher::fetchHtml` → `OpenGraph::parse` → `ImageAttacher::attach` (cache OG image locally) → `CardRenderer::render` → wrap with `data-kind="card"`.
+   - `RemoteFetcher::normalizeUrl` → `Registry::match` is attempted → on a hit, the `provider->buildEmbed()` output is **wrapped in `<div editor_component="oembed" data-url="…">…</div>`** and returned.
+   - On miss: `RemoteFetcher::fetchHtml` → `OpenGraph::parse` → `ImageAttacher::attach` (cache OG image locally) → `CardRenderer::render` → wrapped in the same `<div editor_component="oembed" data-url="…">` shape.
    - Response shape: `{ kind: 'embed' | 'card' | 'fail', wrapped_html, url, provider? }`.
+   - The wrapper carries only `editor_component="oembed"` (so CKEditor recognizes the block as a single non-editable widget) and `data-url` (debugging/tooling reference). 임베드 차원/카드 메타 등은 모두 inner HTML 안에 이미 들어 있으므로 wrapper 에 중복 보관하지 않는다.
 
-3. **Output (body render)** — paste 시점에 만들어진 `wrapped_html` 이 **본문에 그대로 박제되어 그대로 출력**된다. Rhymix 에디터 코어가 `<div editor_component="oembed">` 를 후처리하지 않으므로(이 모듈은 별도 EditorHandler 를 등록하지 않는다), Provider 의 `buildEmbed` 결과가 바뀌어도 **기존 글에는 소급 반영되지 않는다**. 변경을 게시물에 반영하려면 본문을 다시 저장해야 한다. `data-*` 메타는 향후 도구를 위한 부수 정보일 뿐 출력에 사용되지 않는다.
+3. **Output (body render)** — paste 시점에 만들어진 `wrapped_html` 이 **본문에 그대로 박제되어 그대로 출력**된다. Rhymix 에디터 코어가 `<div editor_component="oembed">` 를 후처리하지 않으므로(이 모듈은 별도 EditorHandler 를 등록하지 않는다), Provider 의 `buildEmbed` 결과가 바뀌어도 **기존 글에는 소급 반영되지 않는다**. 변경을 게시물에 반영하려면 본문을 다시 저장해야 한다.
 
 ## Provider Extension Contract
 
