@@ -29,7 +29,22 @@ class EventHandlers extends Base
       return;
     }
 
+    // act 정규화 — Rhymix 는 URL 에 act 가 없을 때 ModuleHandler 가 module 의
+    // default_index_act 로 자동 라우팅하지만 Context::get('act') 자체에는
+    // 그 값을 채우지 않는다 (ModuleHandler.class.php:355-358). 그래서 mid 만
+    // 가지고 들어온 dispBoardContent 등이 화이트리스트와 매칭되지 않는다.
+    // current_module_info 는 트리거 호출 시점에 이미 세팅되어 있으므로,
+    // act 가 비어 있으면 모듈의 default/admin index act 를 폴백으로 채운다.
     $act = Context::get('act');
+    if (!$act) {
+      $cmi = Context::get('current_module_info');
+      if ($cmi && !empty($cmi->module)) {
+        $xml = ModuleModel::getModuleActionXml($cmi->module);
+        if ($xml) {
+          $act = $xml->default_index_act ?? ($xml->admin_index_act ?? '');
+        }
+      }
+    }
     $isWriteAct = in_array($act, self::WRITE_ACTS, true);
     $isViewAct = in_array($act, self::VIEW_ACTS, true);
     if (!$isWriteAct && !$isViewAct) {
