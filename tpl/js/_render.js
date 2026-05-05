@@ -5,10 +5,15 @@
  * 매칭되는 provider SDK 를 `document.head` 에 동적으로 주입한다.
  *
  * - 자산 맵은 EventHandlers 가 inline `<script>` 로 head 에 emit 한
- *   `window.oembedEmbedAssets` 에 들어 있다 ([{selector, script}, ...]).
+ *   `window.oembedEmbedAssets` 에 들어 있다
+ *   ([{selector, script, crossorigin, normalize}, ...]).
  * - SDK <script> 를 본문에 함께 저장하면 HTMLPurifier 에 의해 글 저장이
  *   실패하므로, 임베드 markup 자체에는 SDK 가 없고 이 파일이 view 시점에
  *   채워 넣는 구조다.
+ * - normalize 는 SDK 검사 직전에 적용한다. CKEditor ACF / HTMLPurifier 가
+ *   blockquote 의 클래스를 떨어뜨리는 환경에서, 살아남는 data 속성 등을
+ *   anchor 로 SDK 가 요구하는 클래스를 다시 붙인다 (예: Instagram 의
+ *   data-instgrm-permalink → .instagram-media).
  * - 호환 모드 (`window.oembedCompatibleMode === true`) 일 때는 추가로
  *   레거시 preview 모듈의 lazy iframe (<iframe data-src="...">) 도
  *   활성화한다.
@@ -43,8 +48,38 @@
     loaded[src] = true;
   }
 
+  function applyNormalize(asset) {
+    if (!Array.isArray(asset.normalize)) {
+      return;
+    }
+    for (var i = 0; i < asset.normalize.length; i++) {
+      var rule = asset.normalize[i];
+      if (!rule || typeof rule.detect !== 'string' || typeof rule.addClass !== 'string' || rule.addClass === '') {
+        continue;
+      }
+      try {
+        var nodes = document.querySelectorAll(rule.detect);
+        for (var j = 0; j < nodes.length; j++) {
+          nodes[j].classList.add(rule.addClass);
+        }
+      } catch (e) {
+        // 잘못된 detect selector 는 조용히 건너뛴다.
+      }
+    }
+  }
+
   function activate() {
     var assets = Array.isArray(window.oembedEmbedAssets) ? window.oembedEmbedAssets : [];
+
+    // pass 1: sanitizer 가 떨어뜨린 클래스를 복원. SDK 검사보다 먼저 해야
+    // selector 에 매칭된다.
+    for (var n = 0; n < assets.length; n++) {
+      if (assets[n]) {
+        applyNormalize(assets[n]);
+      }
+    }
+
+    // pass 2: selector 매칭 노드가 있으면 SDK 를 head 에 주입.
     var loaded = {};
     for (var i = 0; i < assets.length; i++) {
       var asset = assets[i];

@@ -44,8 +44,18 @@ class Instagram extends Provider
 
   public function getEmbedAssets(): array
   {
+    // CKEditor ACF / HTMLPurifier 가 blockquote 의 class 를 떨어뜨리는
+    // 환경이 흔해서, 살아남는 data-instgrm-permalink 를 anchor 삼아
+    // .instagram-media 클래스를 복원한 뒤 SDK 를 검사한다. data 속성이
+    // 있는데도 클래스가 빠진 노드는 거의 항상 sanitizer 가 잘라낸 것.
     return [
-      ['selector' => '.instagram-media', 'script' => 'https://www.instagram.com/embed.js'],
+      [
+        'selector' => '.instagram-media',
+        'script' => 'https://www.instagram.com/embed.js',
+        'normalize' => [
+          ['detect' => 'blockquote[data-instgrm-permalink]:not(.instagram-media)', 'addClass' => 'instagram-media'],
+        ],
+      ],
     ];
   }
 }

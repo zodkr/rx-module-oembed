@@ -64,11 +64,24 @@ abstract class Provider
    * 둔다. Instagram embed.js / Imgur embed.js 처럼 CORS 헤더가 없는 SDK
    * 에 anonymous 모드를 켜면 브라우저가 로딩을 차단한다 (기본 false).
    *
+   * normalize 는 선택. CKEditor ACF 나 HTMLPurifier 가 저장 시점에 우리
+   * 가 buildEmbed() 에서 출력한 클래스를 화이트리스트에서 제외해 떨어뜨릴
+   * 수 있는데(Instagram blockquote 의 .instagram-media 가 대표적), SDK
+   * 가 자기 클래스를 보고 변환하는 구조라 클래스가 빠지면 임베드가 사문화
+   * 된다. 각 항목은 sanitizer 를 통과한 detect selector(예: 사용자 정의
+   * data 속성처럼 일반적으로 살아남는 식별자) 가 매칭되는 노드에 addClass
+   * 를 붙이도록 _render.js 에 지시한다. SDK 검사보다 먼저 적용된다.
+   *
    * buildEmbed() 결과 안에 <script> 를 직접 넣으면 HTMLPurifier 가 저장
    * 단계에서 제거하므로(글 저장 자체가 실패), script 는 반드시 이 메서드를
    * 통해 view 시점에 head 로 주입돼야 한다.
    *
-   * @return array<int, array{selector: string, script: string, crossorigin?: bool}>
+   * @return array<int, array{
+   *   selector: string,
+   *   script: string,
+   *   crossorigin?: bool,
+   *   normalize?: array<int, array{detect: string, addClass: string}>,
+   * }>
    */
   public function getEmbedAssets(): array
   {

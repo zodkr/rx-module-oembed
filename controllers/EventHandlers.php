@@ -127,7 +127,15 @@ class EventHandlers extends Base
    * crossorigin 은 SDK CDN 이 CORS 헤더를 보낼 때만 true. CORS 미지원
    * SDK (Imgur 등) 에 anonymous 모드를 강제하면 브라우저가 차단한다.
    *
-   * @return array<int, array{selector: string, script: string, crossorigin: bool}>
+   * normalize 는 sanitizer 가 떨어뜨린 클래스를 view 시점에 복원하기 위한
+   * detect→addClass 규칙. SDK 검사보다 먼저 적용된다.
+   *
+   * @return array<int, array{
+   *   selector: string,
+   *   script: string,
+   *   crossorigin: bool,
+   *   normalize: array<int, array{detect: string, addClass: string}>,
+   * }>
    */
   private function collectProviderEmbedAssets(): array
   {
@@ -139,10 +147,21 @@ class EventHandlers extends Base
         if ($selector === '' || $script === '') {
           continue;
         }
+        $normalize = [];
+        if (isset($asset['normalize']) && is_array($asset['normalize'])) {
+          foreach ($asset['normalize'] as $rule) {
+            $detect = isset($rule['detect']) ? (string) $rule['detect'] : '';
+            $addClass = isset($rule['addClass']) ? (string) $rule['addClass'] : '';
+            if ($detect !== '' && $addClass !== '') {
+              $normalize[] = ['detect' => $detect, 'addClass' => $addClass];
+            }
+          }
+        }
         $assets[] = [
           'selector' => $selector,
           'script' => $script,
           'crossorigin' => !empty($asset['crossorigin']),
+          'normalize' => $normalize,
         ];
       }
     }
