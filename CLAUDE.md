@@ -76,6 +76,13 @@ External calls **must go through `Models\RemoteFetcher`**. Direct `HTTP::get` / 
 
 **Do not auto-register hosts.** Per site security policy, the operator must approve hosts manually at System → Settings → Security → External Multimedia Allow (`Rhymix\Framework\Filters\MediaFilter`) for the iframe to survive on the rendered page. The admin Provider screen uses `MediaFilter::matchWhitelist()` to show per-host registration status as badges and surfaces a summary of unregistered hosts. Do not reintroduce auto-whitelisting code (it was intentionally removed in v0.4.0).
 
+The hosts the admin screen displays come from **`Provider::getEmbedHosts()`**, not `$hosts`. The two are deliberately separated:
+
+- `$hosts` — paste 시점에 입력 URL 의 호스트와 매칭하는 후보 (paste detection only).
+- `getEmbedHosts()` — 본문에 박힐 iframe / SDK src 의 실제 호스트. MediaFilter 화이트리스트에 등록돼야 출력 단계에서 살아남는 호스트들. 단순 iframe provider (Youtube 처럼 입력 도메인과 임베드 도메인이 동일) 는 override 안 해도 되고, 기본 구현이 `$hosts` 를 그대로 반환한다.
+
+이 분리 전, X / Reddit 등 SDK 변환형 provider 는 SDK 호스트를 `$hosts` 에 섞어 넣는 워크어라운드를 썼는데, paste 매칭 의미가 흐려져 v0.5.0 에서 분리했다.
+
 ## EventHandlers Routing Subtleties
 
 `controllers/EventHandlers.php::injectEditorAssets` injects the paste hook / card assets on the `before display` trigger. Two pitfalls:
@@ -85,13 +92,16 @@ External calls **must go through `Models\RemoteFetcher`**. Direct `HTTP::get` / 
 
 ## Config / Skin
 
-- Module config lives in `Models\Config` (static cache + `ModuleModel::getModuleConfig('oembed')`). Keys: `compatible_mode` (Y/N), `skin` (directory name), `disabled_providers` (array).
+- Module config lives in `Models\Config` (static cache + `ModuleModel::getModuleConfig('oembed')`). Keys: `compatible_mode` (Y/N), `skin` (directory name), `enabled_providers` (array — whitelist).
+- 신규 설치 시 `Install::moduleInstall()` 가 `Config::BUNDLED_PROVIDERS` (`Youtube`, `Facebook`, `Instagram`, `X`, `Reddit`) 만 `enabled_providers` 에 시드한다. 기존에 `disabled_providers` 만 가진 사이트는 `Install::moduleUpdate()` 가 `enabled_providers = allKeys − disabled_providers` 로 1회 변환하고 `disabled_providers` 키를 제거한다.
 - Skins live at `skins/{name}/card.blade.php` + `card.css` + `skin.xml`. `Config::getSkin()` falls back to `default` when the directory is missing.
 - `CardRenderer::render()` does `\Context::set('oembed_card', …)` then `TemplateHandler::compile($skinPath, 'card')` — it compiles whichever exists, Blade or the XE template (`card.*`).
 
 ## Admin Form Data Model (a once-confusing point)
 
-`procOembedAdminInsertConfig` handles both screens (`dispOembedAdminConfig` / `dispOembedAdminProviders`) under a single action. **The Provider form only sends the enabled list and we derive disabled by inverse** — `array_diff(allKeys, enabled)`. Newly added Providers default to enabled. If you change this to "store enabled directly", new Providers will silently default to disabled — that's a regression.
+`procOembedAdminInsertConfig` handles both screens (`dispOembedAdminConfig` / `dispOembedAdminProviders`) under a single action. 두 폼은 hidden `<input name="screen" value="config|providers">` 로 자기 출처를 식별하고, 핸들러는 `Context::get('screen')` 으로 분기한다. (과거에는 `Context::get('act')` 로 분기했는데 그 시점의 `act` 는 핸들러 자기 이름이라 어떤 분기도 참이 되지 않아 설정이 무시되는 버그가 있었다 — issue #4.)
+
+**Provider 화면은 enabled list 를 화이트리스트로 직접 저장한다** (`config->enabled_providers`). 즉 폼에서 체크된 provider 만 paste 매칭 대상이 된다. `providers/` 디렉터리에 새 파일을 떨어뜨려도 운영자가 어드민에서 명시적으로 활성화하지 않으면 동작하지 않는다 — 의도된 보안 정책이다 (issue #3). Registry 쪽 적용은 `Models\Registry::filterEnabled()` — `enabled_providers` 가 비어 있으면 `[]` 을 반환해 paste 매칭이 모두 fail.
 
 ## Build / Test
 

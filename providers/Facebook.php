@@ -20,7 +20,7 @@ class Facebook extends Provider
   public string $name = 'Facebook';
   public string $type = self::TYPE_SOCIAL;
   public bool $oembed = false;
-  public array $hosts = ['www.facebook.com', 'facebook.com', 'm.facebook.com', 'fb.watch', 'connect.facebook.net'];
+  public array $hosts = ['www.facebook.com', 'facebook.com', 'm.facebook.com', 'fb.watch'];
   public array $patterns = [
     '#(?:https?:)?//(?:www\.|m\.)?facebook\.com/(?:[\w.\-]+)/posts/[\w-]+#i' => [],
     '#(?:https?:)?//(?:www\.|m\.)?facebook\.com/permalink\.php\?[^"\s]*story_fbid=[\w-]+#i' => [],
@@ -58,5 +58,12 @@ class Facebook extends Provider
         'crossorigin' => true,
       ],
     ];
+  }
+
+  public function getEmbedHosts(): array
+  {
+    // SDK 가 변환한 iframe 은 www.facebook.com/plugins/* 로 호스팅되므로
+    // www.facebook.com 이, SDK 스크립트 로드를 위해 connect.facebook.net 이 필요.
+    return ['www.facebook.com', 'connect.facebook.net'];
   }
 }

@@ -11,6 +11,13 @@ class Config
 
   public const DEFAULT_SKIN = 'default';
 
+  /**
+   * 모듈에 번들로 포함되어 있는 기본 provider 목록. 신규 설치 시 이
+   * 목록만 활성화 상태로 시드되고, providers/ 디렉터리에 추가된 새
+   * 파일은 운영자가 어드민에서 명시적으로 켜야만 동작한다 (보안 정책).
+   */
+  public const BUNDLED_PROVIDERS = ['Youtube', 'Facebook', 'Instagram', 'X', 'Reddit'];
+
   public static function getConfig(): object
   {
     if (self::$cache === null) {
@@ -20,9 +27,13 @@ class Config
       self::$cache->skin = is_string(self::$cache->skin ?? null) && self::$cache->skin !== ''
         ? self::$cache->skin
         : self::DEFAULT_SKIN;
-      self::$cache->disabled_providers = is_array(self::$cache->disabled_providers ?? null)
-        ? self::$cache->disabled_providers
-        : [];
+      // 화이트리스트 모델: enabled_providers 에 들어있는 것만 활성.
+      // 값이 없으면(=신규 설치 직후 또는 마이그레이션 전) 번들 기본값으로
+      // 폴백한다. 실제 마이그레이션 (disabled_providers → enabled_providers)
+      // 은 Install::moduleUpdate 에서 한 번 수행한다.
+      self::$cache->enabled_providers = is_array(self::$cache->enabled_providers ?? null)
+        ? self::$cache->enabled_providers
+        : self::BUNDLED_PROVIDERS;
     }
     return self::$cache;
   }

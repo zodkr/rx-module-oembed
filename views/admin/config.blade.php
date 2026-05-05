@@ -24,6 +24,7 @@
 <form action="{{ getUrl() }}" method="post" id="oembedConfigForm">
   <input type="hidden" name="module" value="admin" />
   <input type="hidden" name="act" value="procOembedAdminInsertConfig" />
+  <input type="hidden" name="screen" value="config" />
   <input type="hidden" name="success_return_url" value="{{ getCurrentPageUrl() }}" />
 
   <section class="section">

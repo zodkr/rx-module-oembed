@@ -27,9 +27,6 @@ class X extends Provider
   public array $hosts = [
     'twitter.com', 'www.twitter.com', 'mobile.twitter.com',
     'x.com', 'www.x.com', 'mobile.x.com',
-    // widgets.js 가 본문에 삽입하는 트윗 iframe 의 호스트.
-    // MediaFilter 화이트리스트에 등록되지 않으면 출력 단계에서 잘릴 수 있다.
-    'platform.twitter.com',
   ];
   // 좁은 패턴(/i/web/status) 을 먼저 둬서 두번째 패턴이 'web' 을 username 으로
   // 잡아채지 않도록 한다 (Provider::match 는 first-match-wins).
@@ -74,5 +71,13 @@ class X extends Provider
         ],
       ],
     ];
+  }
+
+  public function getEmbedHosts(): array
+  {
+    // widgets.js SDK 와 그것이 본문에 삽입하는 트윗 iframe 모두
+    // platform.twitter.com 으로 호스팅된다 (twitter.com / x.com 은 입력
+    // URL 매칭에만 쓰이고 화이트리스트에는 의미 없음).
+    return ['platform.twitter.com'];
   }
 }

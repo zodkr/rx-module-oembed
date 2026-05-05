@@ -58,4 +58,10 @@ class Instagram extends Provider
       ],
     ];
   }
+
+  public function getEmbedHosts(): array
+  {
+    // SDK 가 변환한 iframe 도 embed.js 도 모두 www.instagram.com 호스팅.
+    return ['www.instagram.com'];
+  }
 }

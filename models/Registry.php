@@ -108,17 +108,22 @@ class Registry
   }
 
   /**
+   * 화이트리스트 모델: enabled_providers 에 명시적으로 들어 있는 것만
+   * 통과시킨다. providers/ 에 새 파일이 떨어져도 운영자가 어드민에서
+   * 직접 활성화하지 않으면 paste 매칭 대상에서 제외 — 신규 provider
+   * 가 자동 활성화되는 보안 위험을 막는다.
+   *
    * @param array<string, Provider> $providers
    * @return array<string, Provider>
    */
   private static function filterEnabled(array $providers): array
   {
     $config = Config::getConfig();
-    $disabled = is_array($config->disabled_providers ?? null) ? $config->disabled_providers : [];
-    if (!$disabled) {
-      return $providers;
+    $enabled = is_array($config->enabled_providers ?? null) ? $config->enabled_providers : [];
+    if (!$enabled) {
+      return [];
     }
-    return array_filter($providers, static fn(string $key) => !in_array($key, $disabled, true), ARRAY_FILTER_USE_KEY);
+    return array_filter($providers, static fn(string $key) => in_array($key, $enabled, true), ARRAY_FILTER_USE_KEY);
   }
 
   private static function shortName(string $fqcn): string

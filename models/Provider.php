@@ -10,6 +10,13 @@ abstract class Provider
   public string $name = '';
   public string $type = self::TYPE_MULTIMEDIA;
   public bool $oembed = false;
+  /**
+   * paste 시점에 입력 URL 의 호스트와 매칭되는 후보 목록.
+   * 시스템 → 보안 → 외부 멀티미디어 허용에 등록해야 하는 호스트는 이 목록이
+   * 아니라 getEmbedHosts() 의 결과다 (둘은 자주 다르다 — 예: X 는 입력은
+   * twitter.com / x.com 이지만 widgets.js 가 만드는 iframe 은
+   * platform.twitter.com 호스팅이라 화이트리스트에는 후자가 등록돼야 한다).
+   */
   public array $hosts = [];
 
   /**
@@ -86,6 +93,30 @@ abstract class Provider
   public function getEmbedAssets(): array
   {
     return [];
+  }
+
+  /**
+   * 본문에 박힐 iframe / SDK 변환 결과의 src 호스트 목록.
+   *
+   * 시스템 → 보안 → 외부 멀티미디어 허용 (MediaFilter 화이트리스트) 에
+   * 등록되어야 출력 단계에서 iframe 이 살아남는 호스트들이다. paste 매칭에
+   * 쓰이는 $hosts 와는 의미가 다르다:
+   *   - $hosts 는 입력 URL 매칭 (paste 단계).
+   *   - getEmbedHosts() 는 출력 호스트 (view 단계, MediaFilter 검사 대상).
+   *
+   * 예) X.php — $hosts 는 twitter.com / x.com 등 사용자가 paste 하는 URL,
+   *           getEmbedHosts() 는 widgets.js 가 만드는 iframe 의 호스트인
+   *           platform.twitter.com.
+   *
+   * 단순 iframe provider (Youtube 처럼 입력 도메인과 임베드 도메인이 같은
+   * 경우) 는 이 메서드를 override 하지 않아도 되며, 기본은 $hosts 와 동일.
+   * 어드민 화면은 이 결과를 그대로 “화이트리스트에 추가하세요” 안내에 쓴다.
+   *
+   * @return array<int, string>
+   */
+  public function getEmbedHosts(): array
+  {
+    return $this->hosts;
   }
 
   /**

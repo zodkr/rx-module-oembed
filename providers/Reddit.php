@@ -27,9 +27,6 @@ class Reddit extends Provider
     'www.reddit.com', 'reddit.com',
     'old.reddit.com', 'new.reddit.com', 'np.reddit.com',
     'redd.it',
-    // widgets.js 가 본문에 삽입하는 reddit iframe 의 호스트.
-    // MediaFilter 화이트리스트에 등록되지 않으면 출력 단계에서 잘릴 수 있다.
-    'embed.reddit.com', 'www.redditmedia.com',
   ];
   // 좁은 패턴(comment_id 까지) 을 먼저 둬 두번째 패턴이 comment_id 를
   // 누락하지 않도록 한다 (Provider::match 는 first-match-wins).
@@ -80,5 +77,12 @@ class Reddit extends Provider
         ],
       ],
     ];
+  }
+
+  public function getEmbedHosts(): array
+  {
+    // SDK 호스트(embed.reddit.com) 와 SDK 가 변환한 iframe 의 호스트
+    // (www.redditmedia.com) 둘 다 화이트리스트에 등록돼야 본문에 살아남는다.
+    return ['embed.reddit.com', 'www.redditmedia.com'];
   }
 }

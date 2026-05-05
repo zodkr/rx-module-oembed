@@ -31,7 +31,7 @@ class Admin extends Base
     $hostStatus = [];
     $missingHosts = [];
     foreach ($providers as $key => $provider) {
-      foreach ($provider->hosts as $host) {
+      foreach ($provider->getEmbedHosts() as $host) {
         $isWhitelisted = MediaFilter::matchWhitelist('https://' . $host . '/');
         $hostStatus[$key][$host] = $isWhitelisted;
         if (!$isWhitelisted) {
@@ -52,23 +52,34 @@ class Admin extends Base
   {
     $config = ConfigModel::getConfig();
     $vars = Context::getRequestVars();
-    $act = Context::get('act');
+    // 두 어드민 폼 모두 같은 act(procOembedAdminInsertConfig) 로 진입하므로
+    // hidden 'screen' 필드로 어느 화면에서 왔는지 식별한다. 과거에는
+    // Context::get('act') 로 분기했는데, 그 시점의 act 는 핸들러 자기
+    // 이름이라 어떤 분기도 참이 되지 않아 설정이 무시되는 버그가 있었다.
+    $screen = (string) Context::get('screen');
 
-    if ($act === 'dispOembedAdminConfig') {
+    if ($screen === 'config') {
       $config->compatible_mode = (($vars->compatible_mode ?? 'N') === 'Y') ? 'Y' : 'N';
       $skin = trim((string) ($vars->skin ?? ''));
       if ($skin !== '' && is_dir($this->module_path . 'skins/' . $skin)) {
         $config->skin = $skin;
       }
-    } elseif ($act === 'dispOembedAdminProviders') {
+    } elseif ($screen === 'providers') {
       // 폼은 enabled_providers[] (= 사용 체크) 만 전송한다.
-      // 등록된 모든 provider 중 enabled 에 없는 것을 disabled 로 환산해 저장한다.
-      $enabled = is_array($vars->enabled_providers ?? null)
+      // 화이트리스트 모델: 명시적으로 enable 된 provider 만 저장하고,
+      // 새 provider 파일이 추가돼도 자동으로 동작하지 않도록 한다.
+      // array_intersect 로 알 수 없는 키(클라이언트 위변조) 는 거른다.
+      $submitted = is_array($vars->enabled_providers ?? null)
         ? array_map('strval', $vars->enabled_providers)
         : [];
       $allKeys = array_keys(Registry::getProviders(false));
-      $config->disabled_providers = array_values(array_diff($allKeys, $enabled));
+      $config->enabled_providers = array_values(array_intersect($allKeys, $submitted));
+      // 레거시 키 정리 — moduleUpdate 에서 한 번 마이그레이션됐어도
+      // 폼 저장 시점에 다시 제거해 두면 데이터 모델이 단순해진다.
+      unset($config->disabled_providers);
       Registry::flush();
+    } else {
+      return new \BaseObject(-1, 'msg_invalid_request');
     }
 
     $output = ConfigModel::setConfig($config);

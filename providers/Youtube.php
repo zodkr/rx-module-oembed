@@ -34,4 +34,10 @@ class Youtube extends Provider
       $h
     );
   }
+
+  public function getEmbedHosts(): array
+  {
+    // buildEmbed 가 출력하는 iframe 의 src 호스트만 화이트리스트에 필요.
+    return ['www.youtube.com'];
+  }
 }

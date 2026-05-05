@@ -19,7 +19,7 @@
 
 @php
   $missingHosts = $oembed_missing_hosts ?? [];
-  $disabledProviders = $oembed_config->disabled_providers ?? [];
+  $enabledProviders = $oembed_config->enabled_providers ?? [];
   $hostStatus = $oembed_host_whitelist ?? [];
 @endphp
 
@@ -53,6 +53,7 @@
 <form action="{{ getUrl() }}" method="post" id="oembedProvidersForm">
   <input type="hidden" name="module" value="admin" />
   <input type="hidden" name="act" value="procOembedAdminInsertConfig" />
+  <input type="hidden" name="screen" value="providers" />
   <input type="hidden" name="success_return_url" value="{{ getCurrentPageUrl() }}" />
 
   <div class="x_page-content">
@@ -76,7 +77,7 @@
       <tbody>
         @foreach ($oembed_providers as $key => $provider)
           @php
-            $isEnabled = !in_array($key, $disabledProviders, true);
+            $isEnabled = in_array($key, $enabledProviders, true);
             $typeLabel = $provider->type === 'multimedia'
               ? $lang->oembed_provider_type_multimedia
               : $lang->oembed_provider_type_social;
@@ -98,7 +99,7 @@
             <td>{{ $typeLabel }}</td>
             <td>{{ $provider->oembed ? 'O' : '–' }}</td>
             <td>
-              @foreach ($provider->hosts as $host)
+              @foreach ($provider->getEmbedHosts() as $host)
                 @php $isWhitelisted = $providerHosts[$host] ?? false; @endphp
                 <span class="oembed-host-badge {{ $isWhitelisted ? 'is-allowed' : 'is-pending' }}"
                       title="{{ $isWhitelisted ? $lang->oembed_host_whitelisted : $lang->oembed_host_not_whitelisted }}">
