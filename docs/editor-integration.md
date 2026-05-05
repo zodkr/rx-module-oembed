@@ -108,7 +108,16 @@ placeholder 패턴을 쓰는 이유는 fetch 가 비동기이기 때문입니다
 
 대신 한 가지 한계가 있습니다: Provider 의 `buildEmbed` 결과나 카드 템플릿이
 나중에 바뀌어도 **이미 작성된 글에는 소급 반영되지 않습니다**. 본문을 다시
-저장해야 새 마크업으로 교체됩니다.
+저장해야 새 마크업으로 교체됩니다. 단, **외부 SDK `<script>` 만은 예외** —
+Instagram embed.js / Facebook sdk.js / Imgur embed.js 같은 활성화 스크립트는
+본문에 함께 저장되지 않고, 글 보기 페이지에서 `_render.js` 가
+`DOMContentLoaded` 시점에 본문 DOM 을 검사해 provider 가 선언한 selector 와
+매칭되는 노드가 있을 때만 `<head>` 에 동적으로 추가합니다. 본문에는 selector
+가 가리키는 CSS 클래스(예: `class="instagram-media"`) 만 살아 있으면 되고,
+SDK URL 은 모듈을 업데이트할 때 자동으로 교체됩니다. 이 구조 덕분에 통합 측
+sanitizer 가 본문 안의 `<script>` 태그를 차단해도 임베드는 정상 작동합니다
+— 본문엔 처음부터 `<script>` 가 박제되지 않으므로 HTMLPurifier 같은 저장
+단계 sanitizer 와 호환됩니다.
 
 ## 5. CSRF 토큰
 

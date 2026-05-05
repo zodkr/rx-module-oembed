@@ -33,7 +33,7 @@ A PSR-4 module (`Rhymix\Modules\Oembed\*`) that converts URLs into **iframe embe
    - Response shape: `{ kind: 'embed' | 'card' | 'fail', wrapped_html, url, provider? }`.
    - The wrapper carries only `editor_component="oembed"` (so CKEditor recognizes the block as a single non-editable widget) and `data-url` (debugging/tooling reference). 임베드 차원/카드 메타 등은 모두 inner HTML 안에 이미 들어 있으므로 wrapper 에 중복 보관하지 않는다.
 
-3. **Output (body render)** — paste 시점에 만들어진 `wrapped_html` 이 **본문에 그대로 박제되어 그대로 출력**된다. Rhymix 에디터 코어가 `<div editor_component="oembed">` 를 후처리하지 않으므로(이 모듈은 별도 EditorHandler 를 등록하지 않는다), Provider 의 `buildEmbed` 결과가 바뀌어도 **기존 글에는 소급 반영되지 않는다**. 변경을 게시물에 반영하려면 본문을 다시 저장해야 한다.
+3. **Output (body render)** — paste 시점에 만들어진 `wrapped_html` 이 **본문에 그대로 박제되어 그대로 출력**된다. Rhymix 에디터 코어가 `<div editor_component="oembed">` 를 후처리하지 않으므로(이 모듈은 별도 EditorHandler 를 등록하지 않는다), Provider 의 `buildEmbed` 결과가 바뀌어도 **기존 글에는 소급 반영되지 않는다**. 변경을 게시물에 반영하려면 본문을 다시 저장해야 한다. 단, **외부 SDK `<script>` 만은 예외** — `_render.js` 가 `DOMContentLoaded` 시점에 본문 DOM 을 검사해 provider 의 `getEmbedAssets()` selector 와 매칭되면 SDK 를 `document.head` 에 동적 주입한다. SDK URL 이 바뀌어도 본문 markup 은 그대로 둔 채 즉시 반영된다(본문엔 selector 가 가리키는 CSS 클래스만 박제돼 있으면 된다).
 
 ## Provider Extension Contract
 
@@ -59,6 +59,7 @@ Rules:
 - The values in `$patterns` are **arrays of capture-group names** — the base `Provider::match()` maps them into `$captures[name]`.
 - Pattern priority is "first match wins" in registration order. Put narrower patterns (album / gifv etc.) first and the most permissive single pattern last (see Imgur).
 - Escape all user input via `htmlspecialchars(…, ENT_QUOTES, 'UTF-8')`. Use `rawurlencode` for URL path segments.
+- **Never put `<script>` inside `buildEmbed()` output.** The wrapped HTML is stored in the document body and HTMLPurifier strips `<script>` at save time — the post can fail to save outright. If your provider needs an external SDK (Instagram embed.js, Facebook sdk.js, Imgur embed.js, etc.) to activate the markup, override `getEmbedAssets()` instead. It returns a list of `['selector' => '<css selector>', 'script' => '<https url>', 'crossorigin' => bool]`. The selector is passed to client-side `document.querySelector` — when at least one matching node exists in the rendered DOM, `_render.js` injects a `<script>` for that URL into `document.head` (deduplicated by URL). Selectors can target multiple classes in one entry (Facebook uses `.fb-post, .fb-video` for a single SDK URL). Detection runs on `DOMContentLoaded`, so it sees the final DOM after all module/addon/sanitizer post-processing — this is more robust than scanning the rendered HTML server-side, where addon execution order vs `before display` would matter. Set `crossorigin => true` only when the SDK's CDN sends CORS headers AND the official snippet uses `crossorigin="anonymous"` (Facebook does, Instagram/Imgur do not). Forcing anonymous CORS mode on a CDN that doesn't allow it makes the browser block the script load — Imgur's `s.imgur.com/min/embed.js` is the canonical example.
 
 ## SSRF / Outbound Call Guard
 
@@ -78,7 +79,7 @@ External calls **must go through `Models\RemoteFetcher`**. Direct `HTTP::get` / 
 `controllers/EventHandlers.php::injectEditorAssets` injects the paste hook / card assets on the `before display` trigger. Two pitfalls:
 
 1. **`act` fallback is required** — When the URL has no `act`, Rhymix `ModuleHandler` routes to the module's `default_index_act` but does not populate that value into `Context::get('act')` (`classes/module/ModuleHandler.class.php:355-358`). So a view request that arrives with only `mid=board` won't match `dispBoardContent`. Use `current_module_info` + `ModuleModel::getModuleActionXml` to fall back to `default_index_act` / `admin_index_act` (commit `9bf9521`).
-2. **Editor asset injection branching** — `WRITE_ACTS` (write document/comment) checks via `EditorModel::getEditorConfig` whether the editor is ckeditor, then injects `_ckeditor.js` + `editor.css`. `VIEW_ACTS` (read document + admin declared/review screens — commit `f7211f7`) only adds `card.css`, and adds `_render.js` only when `compatible_mode=Y`. If you remove the admin declared screens from `VIEW_ACTS`, body cards will break.
+2. **Editor asset injection branching** — `WRITE_ACTS` (write document/comment) checks via `EditorModel::getEditorConfig` whether the editor is ckeditor, then injects `_ckeditor.js` + `editor.css`. `VIEW_ACTS` (read document + admin declared/review screens — commit `f7211f7`) adds `card.css` plus `_render.js` together with an inline `window.oembedEmbedAssets` payload (see Provider Extension Contract). `_render.js` does the actual DOM scan + SDK injection on `DOMContentLoaded`; in compatible mode it additionally activates legacy `iframe[data-src]` placeholders (`window.oembedCompatibleMode`). If neither any provider declares assets nor compatible mode is on, `_render.js` is not loaded. If you remove the admin declared screens from `VIEW_ACTS`, body cards and provider SDK injection both break.
 
 ## Config / Skin
 
@@ -104,6 +105,7 @@ This module has no separate build/test scripts. It does not use `vendor/` or `no
 - **iframe clicks not working inside the CKEditor area** — Intentional. `tpl/css/editor.css` blocks iframe interaction only inside the wysiwyg area (commit `c632b5c`). It is not injected on the read page, so playback there works normally.
 - **Assets not injected because `act` is empty** — Make sure the `default_index_act` fallback in `EventHandlers::injectEditorAssets` is always traversed (commit `9bf9521`).
 - **Body shows a bare `<div>` instead of a card/embed** — paste 시점의 `wrapped_html` 이 그대로 박제되므로 `<iframe>` 또는 카드 마크업이 본문에 같이 저장되어 있어야 한다. 본문을 외부에서 가공하거나 sanitizer 가 자식 노드를 떨어뜨리면 빈 div 만 남는다. 또한 iframe 의 호스트가 시스템 → 보안 → 외부 멀티미디어 허용에 등록되지 않았다면 `MediaFilter` 가 출력 단계에서 iframe 을 제거한다.
+- **Instagram/Facebook/Imgur 임베드가 본문에선 보이지만 활성화되지 않는다** — 브라우저 DevTools → Network 에서 `_render.js` 가 로드됐는지, `<head>` 에 `data-oembed-sdk="..."` 속성을 가진 `<script>` 가 동적 추가됐는지 확인. Provider 의 `getEmbedAssets()` 에서 반환한 selector 와 본문 DOM 이 매칭돼야 SDK 가 주입된다. 본문 sanitizer 가 해당 클래스를 제거하면 selector 가 매칭되지 않아 SDK 도 누락된다. 과거에는 SDK 가 `buildEmbed()` 안의 `<script>` 로 본문에 함께 저장됐는데, HTMLPurifier 가 이를 제거해 글 저장 자체가 실패하던 회귀 버그가 있었다 — 다시 본문에 `<script>` 를 넣지 말 것.
 
 ## Other Editor Integrations
 

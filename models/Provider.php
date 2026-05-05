@@ -50,6 +50,32 @@ abstract class Provider
   }
 
   /**
+   * 본문에 이 provider 의 임베드 마크업이 박제되어 있을 때, 글 보기
+   * 페이지에서 자동으로 로드해야 할 외부 SDK 목록.
+   *
+   * selector 는 클라이언트의 `document.querySelector` 에 직접 전달되는
+   * CSS 선택자다. 본문 DOM 에 실제로 매칭되는 노드가 있을 때만 SDK 가
+   * 주입되므로, 서버측 트리거-addon 실행 순서나 addon 의 본문 후처리에
+   * 무관하게 정확하다. 결정은 DOMContentLoaded 이후 시점이라 본문 markup
+   * 은 이미 최종 DOM 에 들어가 있다.
+   *
+   * crossorigin 은 선택. Facebook SDK 처럼 CDN 이 CORS 헤더를 보내고
+   * 공식 스니펫이 `crossorigin="anonymous"` 를 요구하는 경우에만 true 로
+   * 둔다. Instagram embed.js / Imgur embed.js 처럼 CORS 헤더가 없는 SDK
+   * 에 anonymous 모드를 켜면 브라우저가 로딩을 차단한다 (기본 false).
+   *
+   * buildEmbed() 결과 안에 <script> 를 직접 넣으면 HTMLPurifier 가 저장
+   * 단계에서 제거하므로(글 저장 자체가 실패), script 는 반드시 이 메서드를
+   * 통해 view 시점에 head 로 주입돼야 한다.
+   *
+   * @return array<int, array{selector: string, script: string, crossorigin?: bool}>
+   */
+  public function getEmbedAssets(): array
+  {
+    return [];
+  }
+
+  /**
    * Resolve final iframe dimensions.
    * If both axes are missing, fall back to type-aware defaults (multimedia=16:9, otherwise 4:3).
    *

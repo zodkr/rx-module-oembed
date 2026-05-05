@@ -3,6 +3,7 @@
 namespace Rhymix\Modules\Oembed\Controllers;
 
 use Rhymix\Modules\Oembed\Models\Config as ConfigModel;
+use Rhymix\Modules\Oembed\Models\Registry;
 use Context;
 use EditorModel;
 use ModuleModel;
@@ -22,9 +23,17 @@ class EventHandlers extends Base
   /**
    * before display 트리거.
    *
-   * 글쓰기/댓글 페이지에서는 paste 훅(_ckeditor.js) 을, 글 보기 페이지에서는
-   * 호환 모드 ON 일 때 레거시 임베드 후처리(_render.js) 를 주입한다.
-   * card.css 는 두 그룹 모두 항상 로드한다.
+   * 글쓰기/댓글 페이지에서는 paste 훅(_ckeditor.js) 을 주입한다.
+   * 글 보기 페이지에서는 (1) card.css, (2) `_render.js` + provider 자산 맵을
+   * 주입한다. `_render.js` 는 DOMContentLoaded 시점에 본문 DOM 을 스캔해
+   * 매칭된 외부 SDK 를 `document.head` 에 동적 삽입한다.
+   *
+   * 서버측 `before display` 단계에서 본문 markup 을 스캔하지 않는 이유:
+   * `before display` 는 `before_display_content` addon 보다 먼저 발사되며
+   * (DisplayHandler.class.php:69 vs :73-76), 동일 트리거에 등록된 다른
+   * 모듈(editor 모듈의 transComponent 등) 의 실행 순서도 보장되지 않는다.
+   * 본문이 최종 형태로 굳어지기 전 시점이라 marker 누락 가능성이 있어,
+   * DOM 이 확정된 클라이언트 시점에 검사하는 편이 견고하다.
    */
   public function injectEditorAssets(&$content)
   {
@@ -92,8 +101,51 @@ class EventHandlers extends Base
     if (is_file(\RX_BASEDIR . ltrim($skinCssPath, '/'))) {
       Context::addCssFile($skinCssPath);
     }
-    if (ConfigModel::isCompatibleMode()) {
-      Context::addJsFile($modulePath . 'tpl/js/_render.js', '', '', 0, 'body');
+
+    $assets = $this->collectProviderEmbedAssets();
+    $compatibleMode = ConfigModel::isCompatibleMode();
+    if ($assets === [] && !$compatibleMode) {
+      return;
     }
+
+    // _render.js 는 DOM 스캔 후 매칭된 SDK 를 head 에 주입한다.
+    // 어떤 provider 의 selector 가 어떤 script URL 로 매핑되는지는 이
+    // inline payload 로 전달하므로, _render.js 자체는 데이터를 모른다.
+    Context::addHtmlHeader(sprintf(
+      '<script>window.oembedEmbedAssets=%s;window.oembedCompatibleMode=%s;</script>',
+      json_encode($assets, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP),
+      $compatibleMode ? 'true' : 'false'
+    ));
+    Context::addJsFile($modulePath . 'tpl/js/_render.js', '', '', 0, 'body');
+  }
+
+  /**
+   * 등록된 모든 provider(비활성화 포함) 에서 client-side SDK 자산을 모은다.
+   * disabled_providers 는 paste 단계 게이트일 뿐, 이미 저장된 본문은 계속
+   * 정상 렌더되어야 하므로 view 시점엔 전체 provider 를 검사한다.
+   *
+   * crossorigin 은 SDK CDN 이 CORS 헤더를 보낼 때만 true. CORS 미지원
+   * SDK (Imgur 등) 에 anonymous 모드를 강제하면 브라우저가 차단한다.
+   *
+   * @return array<int, array{selector: string, script: string, crossorigin: bool}>
+   */
+  private function collectProviderEmbedAssets(): array
+  {
+    $assets = [];
+    foreach (Registry::getProviders(false) as $provider) {
+      foreach ($provider->getEmbedAssets() as $asset) {
+        $selector = isset($asset['selector']) ? (string) $asset['selector'] : '';
+        $script = isset($asset['script']) ? (string) $asset['script'] : '';
+        if ($selector === '' || $script === '') {
+          continue;
+        }
+        $assets[] = [
+          'selector' => $selector,
+          'script' => $script,
+          'crossorigin' => !empty($asset['crossorigin']),
+        ];
+      }
+    }
+    return $assets;
   }
 }

@@ -10,6 +10,11 @@ use Rhymix\Modules\Oembed\Models\Provider;
  * 패턴 우선순위는 album → gallery → gifv → image(확장자 명시) → single
  * 이며 첫 매칭이 사용된다. single 패턴이 너무 관대해서 다른 패턴을
  * 가로채지 않도록 패턴 등록 순서를 통해 명시한다.
+ *
+ * 앨범/갤러리 blockquote 가 동작하려면 imgur embed.js 가 필요하지만 본문에
+ * 함께 저장하면 HTMLPurifier 가 제거하므로 buildEmbed() 에서는 blockquote
+ * 만 출력하고, 글 보기 시점에 EventHandlers 가 getEmbedAssets() 의 marker
+ * 를 검사해 head 로 주입한다.
  */
 class Imgur extends Provider
 {
@@ -29,16 +34,14 @@ class Imgur extends Provider
   public function buildEmbed(array $matchData, ?int $width = null, ?int $height = null): string
   {
     $captures = $matchData['captures'] ?? [];
-    $embedScript = '<script async src="//s.imgur.com/min/embed.js"></script>';
 
     if (isset($captures['album_id'])) {
       $id = $captures['album_id'];
       $idHtml = htmlspecialchars($id, ENT_QUOTES, 'UTF-8');
       return sprintf(
-        '<blockquote class="imgur-embed-pub" lang="en" data-id="a/%s"><a href="//imgur.com/a/%s">View album on Imgur</a></blockquote>%s',
+        '<blockquote class="imgur-embed-pub" lang="en" data-id="a/%s"><a href="//imgur.com/a/%s">View album on Imgur</a></blockquote>',
         $idHtml,
-        $idHtml,
-        $embedScript
+        $idHtml
       );
     }
 
@@ -46,10 +49,9 @@ class Imgur extends Provider
       $id = $captures['gallery_id'];
       $idHtml = htmlspecialchars($id, ENT_QUOTES, 'UTF-8');
       return sprintf(
-        '<blockquote class="imgur-embed-pub" lang="en" data-id="%s"><a href="//imgur.com/gallery/%s">View on Imgur</a></blockquote>%s',
+        '<blockquote class="imgur-embed-pub" lang="en" data-id="%s"><a href="//imgur.com/gallery/%s">View on Imgur</a></blockquote>',
         $idHtml,
-        $idHtml,
-        $embedScript
+        $idHtml
       );
     }
 
@@ -74,5 +76,12 @@ class Imgur extends Provider
       htmlspecialchars($href, ENT_QUOTES, 'UTF-8'),
       htmlspecialchars($src, ENT_QUOTES, 'UTF-8')
     );
+  }
+
+  public function getEmbedAssets(): array
+  {
+    return [
+      ['selector' => '.imgur-embed-pub', 'script' => 'https://s.imgur.com/min/embed.js'],
+    ];
   }
 }

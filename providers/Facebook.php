@@ -10,6 +10,10 @@ use Rhymix\Modules\Oembed\Models\Provider;
  * Meta(Graph) oEmbed 는 페이지 액세스 토큰이 필요하므로 사용하지 않는다.
  * 대신 공식 connect.facebook.net SDK + .fb-post / .fb-video XFBML 마크업
  * 으로 클라이언트에서 임베드가 자동 변환되도록 한다.
+ *
+ * SDK 스크립트는 본문에 함께 저장하면 HTMLPurifier 가 제거하므로 buildEmbed()
+ * 에서는 div 만 출력하고, 글 보기 시점에 EventHandlers 가 getEmbedAssets()
+ * 의 marker 를 검사해 head 로 주입한다.
  */
 class Facebook extends Provider
 {
@@ -38,11 +42,21 @@ class Facebook extends Provider
     [$resolvedWidth] = $this->getDimensions($width, $height);
 
     return sprintf(
-      '<div class="%s" data-href="%s" data-width="%d"></div>'
-      . '<script async defer crossorigin="anonymous" src="https://connect.facebook.net/ko_KR/sdk.js#xfbml=1&version=v18.0"></script>',
+      '<div class="%s" data-href="%s" data-width="%d"></div>',
       $cssClass,
       $hrefHtml,
       $resolvedWidth
     );
+  }
+
+  public function getEmbedAssets(): array
+  {
+    return [
+      [
+        'selector' => '.fb-post, .fb-video',
+        'script' => 'https://connect.facebook.net/ko_KR/sdk.js#xfbml=1&version=v18.0',
+        'crossorigin' => true,
+      ],
+    ];
   }
 }

@@ -9,6 +9,10 @@ use Rhymix\Modules\Oembed\Models\Provider;
  *
  * Meta oEmbed 가 토큰을 요구하므로 사용하지 않고, 공식 instagram embed.js
  * 와 .instagram-media blockquote 마크업으로 임베드한다.
+ *
+ * embed.js 는 본문에 함께 저장하면 HTMLPurifier 가 제거하므로 buildEmbed()
+ * 에서는 blockquote 만 출력하고, 글 보기 시점에 EventHandlers 가
+ * getEmbedAssets() 의 marker 를 검사해 head 로 주입한다.
  */
 class Instagram extends Provider
 {
@@ -32,10 +36,16 @@ class Instagram extends Provider
     return sprintf(
       '<blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="%s" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px; max-width:540px; min-width:326px; padding:0; width:99.375%%; width:-webkit-calc(100%% - 2px); width:calc(100%% - 2px);">'
       . '<a href="%s" target="_blank" rel="noopener noreferrer">View on Instagram</a>'
-      . '</blockquote>'
-      . '<script async src="//www.instagram.com/embed.js"></script>',
+      . '</blockquote>',
       $hrefHtml,
       $hrefHtml
     );
+  }
+
+  public function getEmbedAssets(): array
+  {
+    return [
+      ['selector' => '.instagram-media', 'script' => 'https://www.instagram.com/embed.js'],
+    ];
   }
 }
