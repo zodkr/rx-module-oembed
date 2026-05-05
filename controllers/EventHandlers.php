@@ -14,6 +14,9 @@ class EventHandlers extends Base
   ];
   private const VIEW_ACTS = [
     'dispBoardContent', 'dispDocumentPrint', 'dispDocumentPreview', 'dispTrashAdminView',
+    // 어드민 신고/검토 화면 — 본문/댓글이 그대로 노출되므로 카드 자산이 필요.
+    'dispDocumentAdminDeclared', 'dispDocumentAdminDeclaredLogByDocumentSrl',
+    'dispCommentAdminDeclared', 'dispCommentAdminDeclaredLogByCommentSrl',
   ];
 
   /**
