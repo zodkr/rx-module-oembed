@@ -86,9 +86,15 @@ class Controller extends Base
     }
 
     $cardHtml = CardRenderer::render($og, $url, $imageOverride);
+    $cardImage = $imageOverride !== '' ? $imageOverride : $og['image'];
+    $cardSource = $og['site_name'] !== '' ? $og['site_name'] : ($og['host'] ?? '');
     $wrappedHtml = sprintf(
-      '<div editor_component="oembed" data-kind="card" data-url="%s">%s</div>',
+      '<div editor_component="oembed" data-kind="card" data-url="%s" data-title="%s" data-desc="%s" data-image="%s" data-source="%s">%s</div>',
       htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
+      htmlspecialchars($og['title'], ENT_QUOTES, 'UTF-8'),
+      htmlspecialchars($og['description'], ENT_QUOTES, 'UTF-8'),
+      htmlspecialchars($cardImage, ENT_QUOTES, 'UTF-8'),
+      htmlspecialchars($cardSource, ENT_QUOTES, 'UTF-8'),
       $cardHtml
     );
 

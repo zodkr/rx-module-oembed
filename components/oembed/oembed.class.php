@@ -1,5 +1,6 @@
 <?php
 
+use Rhymix\Modules\Oembed\Models\CardRenderer;
 use Rhymix\Modules\Oembed\Models\Registry;
 
 /**
@@ -11,8 +12,11 @@ use Rhymix\Modules\Oembed\Models\Registry;
  *     ...최초 삽입 시 생성된 HTML...
  *   </div>
  *
- * 출력 시 transHTML 이 호출되어 data-* 속성으로부터 최종 HTML 을 다시 렌더링한다.
- * 재렌더가 불가능한 경우(provider 비활성화 등) body 를 그대로 반환해 안전하게 폴백한다.
+ * 카드는 paste 시점에 채워진 data-{title,desc,image,source} 만을 신뢰해
+ * 출력 때마다 CardRenderer 로 재렌더링한다. body 의 내용(사용자가 HTML 모드에서
+ * 임의 편집했을 수 있음)은 무시되어 위변조 가능성을 차단한다.
+ *
+ * 임베드는 data-provider 로 Provider 를 다시 매칭해 buildEmbed 결과를 출력한다.
  */
 class oembed extends EditorHandler
 {
@@ -36,9 +40,31 @@ class oembed extends EditorHandler
     $body = (string) ($xml_obj->body ?? '');
 
     if ($kind === 'card') {
-      // 카드 마크업은 본문에 .preview_card_wrapper 가 이미 포함된 상태로 저장됨.
-      // 추가 wrapper 없이 그대로 반환한다.
-      return $body;
+      if ($url === '' || !preg_match('#^https?://#i', $url)) {
+        return '';
+      }
+      $title = trim((string) ($attrs->{'data-title'} ?? ''));
+      $description = trim((string) ($attrs->{'data-desc'} ?? ''));
+      $image = trim((string) ($attrs->{'data-image'} ?? ''));
+      $source = trim((string) ($attrs->{'data-source'} ?? ''));
+
+      if ($title === '' && $description === '' && $image === '') {
+        // 레거시(v0.2.0 이전) 마크업 폴백: data-url 만 신뢰해 단순 링크로 표시.
+        $safe = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+        return '<div class="oembed_wrapper" contenteditable="false"><a href="' . $safe . '" target="_blank" rel="noopener noreferrer">' . $safe . '</a></div>';
+      }
+
+      $og = [
+        'title' => $title,
+        'description' => $description,
+        'image' => $image,
+        'site_name' => $source,
+        'type' => '',
+        'url' => $url,
+        'host' => (string) (parse_url($url, PHP_URL_HOST) ?? ''),
+        'locale' => '',
+      ];
+      return '<div class="oembed_wrapper" contenteditable="false">' . CardRenderer::render($og, $url) . '</div>';
     }
 
     if ($kind === 'embed' && $url !== '' && $providerKey !== '') {
