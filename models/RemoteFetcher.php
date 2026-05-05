@@ -94,6 +94,43 @@ class RemoteFetcher
   }
 
   /**
+   * Fetch JSON at $url and decode to associative array.
+   *
+   * fetchHtml 과 동일한 SSRF / timeout / redirect 가드를 통과하지만 Accept /
+   * content-type 가드를 application/json 으로 좁힌다. body cap 은 fetchHtml
+   * 과 같은 MAX_HTML_BYTES (2MB) 를 재사용 — oEmbed 응답은 보통 1KB 안팎이라
+   * 별도 cap 을 두지 않아도 충분하다.
+   *
+   * @return array<string,mixed>|null
+   */
+  public static function fetchJson(string $url): ?array
+  {
+    if (!self::isUrlSafe($url)) {
+      return null;
+    }
+    $response = HTTP::get($url, null, [
+      'User-Agent' => self::USER_AGENT,
+      'Accept' => 'application/json',
+    ], [], [
+      'timeout' => self::TIMEOUT_SECONDS,
+      'connect_timeout' => self::TIMEOUT_SECONDS,
+      'allow_redirects' => self::redirectOptions(),
+    ]);
+
+    $status = $response->getStatusCode();
+    if ($status < 200 || $status >= 300) {
+      return null;
+    }
+    $contentType = $response->getHeaderLine('Content-Type');
+    if (!preg_match('#application/json#i', $contentType)) {
+      return null;
+    }
+    $body = self::readLimitedBody($response, self::MAX_HTML_BYTES);
+    $payload = json_decode($body, true);
+    return is_array($payload) ? $payload : null;
+  }
+
+  /**
    * Fetch image bytes at $url. Returns null on any failure or if the response
    * exceeds MAX_IMAGE_BYTES / is not an image MIME.
    *

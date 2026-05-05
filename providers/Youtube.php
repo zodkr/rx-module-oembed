@@ -48,12 +48,8 @@ class Youtube extends Provider
     // 반영해서 응답하므로(Shorts 9:16, 21:9 시네마틱 등 포함), 이 값을 그대로
     // iframe width/height 으로 쓰면 비율이 자동으로 맞는다.
     $endpoint = 'https://www.youtube.com/oembed?url=' . rawurlencode($url) . '&format=json';
-    $fetched = RemoteFetcher::fetchHtml($endpoint);
-    if ($fetched === null) {
-      return null;
-    }
-    $payload = json_decode($fetched['body'], true);
-    if (!is_array($payload)) {
+    $payload = RemoteFetcher::fetchJson($endpoint);
+    if ($payload === null) {
       return null;
     }
     $info = [];
