@@ -1,18 +1,18 @@
 /* ─────────────────────────────────────────────────────────────────────────
    oembed inline wrapper (iframe / blockquote / images)
    ───────────────────────────────────────────────────────────────────────── */
-.oembed_wrapper {
+div[editor_component="oembed"] {
   display: block;
   position: relative;
   margin: 1em 0;
   max-width: 100%;
-}
 
-.oembed_wrapper iframe,
-.oembed_wrapper video,
-.oembed_wrapper img {
-  max-width: 100%;
-  border: 0;
+  iframe,
+  video,
+  img {
+    max-width: 100%;
+    border: 0;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
