@@ -27,13 +27,11 @@ Rhymix 용 oEmbed 모듈. CKEditor 4 에서 사용자가 URL 을 붙여넣으면
 
 ## 설치
 
-이 저장소는 [zodkr/core](https://github.com/zodkr/core) 의 `modules/.gitignore`
-에 의해 core 트리와 분리되어 있습니다. `modules/oembed` 위치에 별도 clone 으로
-설치합니다.
+Rhymix 사이트의 `modules/oembed` 위치에 이 저장소를 배치합니다.
 
 ```sh
-cd /path/to/rhymix-site
-git clone -b dev https://github.com/zodkr/rx-module-oembed.git modules/oembed
+cd /path/to/rhymix-site/modules
+git clone <이 저장소 URL> oembed
 ```
 
 설치 후 관리자 화면 → 시스템 → 모듈 관리에서 oEmbed 모듈을 활성화합니다.
