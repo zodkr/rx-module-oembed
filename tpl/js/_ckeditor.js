@@ -18,6 +18,7 @@
 
   var URL_PATTERN = /(?:https?:)?\/\/[^\s<>"]+/i;
   var FAILED_HOSTS_KEY = 'oembed:failed_hosts';
+  var FAILED_HOST_TTL_MS = 60 * 60 * 1000; // 1 시간
   var DEBUG = !!(window.localStorage && window.localStorage.getItem('oembed:debug'));
 
   function debug() {
@@ -31,7 +32,24 @@
   function loadFailedHosts() {
     try {
       var raw = window.sessionStorage.getItem(FAILED_HOSTS_KEY);
-      return raw ? JSON.parse(raw) : {};
+      var failed = raw ? JSON.parse(raw) : {};
+      // FAILED_HOST_TTL_MS 가 지난 항목은 만료 처리해 자동 재시도 가능하게 한다.
+      // 일시적인 네트워크 실패나 CSRF 토큰 미세팅 같은 환경 문제로 한 번
+      // 등록되면 영구 차단되는 부작용을 막는다.
+      var now = Date.now();
+      var changed = false;
+      for (var host in failed) {
+        if (Object.prototype.hasOwnProperty.call(failed, host)) {
+          if (typeof failed[host] !== 'number' || (now - failed[host]) > FAILED_HOST_TTL_MS) {
+            delete failed[host];
+            changed = true;
+          }
+        }
+      }
+      if (changed) {
+        window.sessionStorage.setItem(FAILED_HOSTS_KEY, JSON.stringify(failed));
+      }
+      return failed;
     } catch (e) {
       return {};
     }
