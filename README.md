@@ -98,16 +98,6 @@ CKEditor 4 외 에디터(예: Draft.js, Quill, TinyMCE 등)에서도
 있습니다. 자세한 흐름과 예시 코드는
 [`docs/editor-integration.md`](docs/editor-integration.md) 를 참고하세요.
 
-## 마일스톤
-
-| 버전 | 범위 |
-| --- | --- |
-| **v0.1.0** | 모듈 골격, AbstractProvider, Registry, Youtube, procOembedFetch (embed), CKEditor JS, 에디터 컴포넌트, preview 충돌 검사, 어드민 빈 화면 |
-| **v0.2.0** | OG 파서, RemoteFetcher (SSRF 가드), CardRenderer, ImageAttacher, 카드 흐름 |
-| **v0.3.0** | Facebook / Instagram / X Provider |
-| **v0.4.0** | 어드민 UI 강화 (Provider 캐시 새로고침, 호스트 whitelist 상태 배지, 미등록 호스트 종합 안내, preview 비활성화 가이드). iframe whitelist 자동 등록 제거 — 명시적 승인 정책 도입 |
-| **v0.5.0** | 외부 컨트리뷰터 가이드, 다른 에디터 통합 매뉴얼 |
-
 ## 디렉터리 구조
 
 PSR-4 (`Rhymix\Modules\Oembed\*`).
