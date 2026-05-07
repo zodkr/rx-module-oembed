@@ -14,7 +14,7 @@ div[editor_component="oembed"] {
     border: 0;
   }
 
-  iframe {
+  &[data-oembed-type="multimedia"] iframe {
     border-radius: 1rem;
     overflow: hidden;
   }
