@@ -91,6 +91,26 @@ class Vimeo extends Provider
 `match()` 와 `getDimensions()` 는 베이스 클래스가 제공하므로 일반적으로
 `buildEmbed()` 만 구현하면 됩니다.
 
+### Claude Code를 이용한 Provider 추가
+
+Claude Code 및 기타 AI 코딩 어시스턴트를 이용하여 다음과 같이 Provider 추가가 가능합니다. Claude Code를 이용하지 않는 경우 별도로 CLAUDE.md를 읽을 수 있도록 처리해주시기 바랍니다.
+
+예제 프롬프트 :
+
+```
+
+새로운 branch를 만들고, sooplive.co.kr 서비스의 Provider를 추가해줘
+
+해당 서비스의 주소 및 임베드 패턴은 다음과 같아
+
+| 주소 | 임베드 스크립트 |
+| --- | --- |
+| https://vod.sooplive.com/player/194919403 | <iframe id="soop_player_video" width="640" height="360" src="https://vod.sooplive.com/player/194919403/embed?showChat=true&autoPlay=true&mutePlay=true" frameborder="0" allowfullscreen="true" allow="clipboard-write; web-share;"></iframe> |
+| https://vod.sooplive.com/player/192089437/catch | <iframe id="soop_player_video" width="640" height="512" src="https://vod.sooplive.com/player/192089437/embed?type=catch&showChat=false&autoPlay=true&mutePlay=true" frameborder="0" allowfullscreen="true" allow="clipboard-write; web-share;"></iframe> |
+| https://play.sooplive.com/phonics1/293820033 | <iframe src="https://play.sooplive.com/phonics1/293820033/embed" width="640" height="360" frameborder="0" allowfullscreen allow="loopback-network"></iframe> |
+
+```
+
 ## 다른 에디터 통합
 
 CKEditor 4 외 에디터(예: Draft.js, Quill, TinyMCE 등)에서도
