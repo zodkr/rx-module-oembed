@@ -226,18 +226,20 @@ div[editor_component="oembed"] {
        provider 별 셀렉터는 색/배경만 추가로 덮어쓴다. */
     &::before {
       content: "임베드";
+      text-align: center;
       display: block;
       padding: 1rem 1.25rem;
       background: #e1e4e8;
       color: #57606a;
-      line-height: 0.8rem;
+      line-height: 1.5rem;
       font-size: 0.8rem;
       font-weight: 600;
       letter-spacing: 0.02em;
+      white-space:pre;
     }
 
     &[data-oembed-provider]::before {
-      content: attr(data-oembed-provider) " 임베드";
+      content: attr(data-oembed-provider) " 임베드\A게시물 작성 후 표시됩니다";
     }
 
     /* 알려진 provider 의 브랜드 색상 — 텍스트는 위에서 attr() 로 채워진 채
