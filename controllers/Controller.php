@@ -48,9 +48,13 @@ class Controller extends Base
         $width = $width ?? ($info['width'] ?? null);
         $height = $height ?? ($info['height'] ?? null);
       }
-      [$resolvedWidth, $resolvedHeight] = $provider->getDimensions($width, $height);
+      // dimension 의 type-별 default 해석은 각 provider 의 buildEmbed 가 내부에서
+      // $this->getDimensions($w, $h) 로 처리한다. 여기서 미리 풀어 넘기면 매칭에
+      // 따라 type 이 갈리는 provider (예: Facebook 의 일반 포스트=4:3 vs 릴=9:16)
+      // 가 잘못된 default 를 받아쓰게 되므로 raw 값을 그대로 전달한다.
+      $type = $provider->resolveType($matchData);
 
-      $embedHtml = $provider->buildEmbed($matchData, $resolvedWidth, $resolvedHeight);
+      $embedHtml = $provider->buildEmbed($matchData, $width, $height);
       if ($embedHtml === '') {
         // provider 매칭은 성공했는데 buildEmbed 가 빈 문자열을 돌려주는 케이스
         // (예: Facebook share 단축 URL 의 redirect resolve 가 transient 로 실패).
@@ -82,7 +86,7 @@ class Controller extends Base
         : '';
       $wrappedHtml = sprintf(
         '<div editor_component="oembed" data-oembed-type="%s" data-oembed-provider="%s" data-url="%s"%s contenteditable="false">%s</div>',
-        htmlspecialchars($provider->type, ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars($type, ENT_QUOTES, 'UTF-8'),
         htmlspecialchars($providerShort, ENT_QUOTES, 'UTF-8'),
         htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
         $fileSrlAttr,

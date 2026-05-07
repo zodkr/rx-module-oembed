@@ -67,6 +67,23 @@ class Facebook extends Provider
     return $rematched ?? array_merge($matched, ['url' => $resolved]);
   }
 
+  /**
+   * 일반 포스트는 social, 릴(/reel/<id>)은 multimedia 로 분류한다. 릴은 세로형
+   * 비디오 콘텐츠라 wrapper 가 multimedia 분기 (라운드된 iframe, social 라벨
+   * 박스 미적용) 를 받는 게 시각적으로 자연스럽다. /share/r/ 가 아직 canonical
+   * 로 정규화되지 않은 상태라면 share URL 자체를 보고 판단 — match() 가 share
+   * URL 을 redirect 로 풀어 /reel/ 로 바꿔 두는 흐름이 일반적이지만, resolve
+   * 가 transient 로 실패한 케이스에도 한 번 더 분기를 잡기 위함.
+   */
+  public function resolveType(array $matchData): string
+  {
+    $url = $matchData['url'] ?? '';
+    if (preg_match('~/reel/\d+|/share/r/[\w-]+~i', $url)) {
+      return self::TYPE_MULTIMEDIA;
+    }
+    return $this->type;
+  }
+
   private function resolveShareUrl(string $shareUrl): ?string
   {
     $fetched = RemoteFetcher::fetchHtml($shareUrl);
