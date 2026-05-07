@@ -18,30 +18,30 @@ div[editor_component="oembed"] {
     border-radius: 1rem;
     overflow: hidden;
   }
-}
 
-/* wrapper 정렬 — CKEditor 의 좌/중/우 Justify 명령이 _ckeditor.js 의
-   beforeCommandExec 훅에서 가로채져 data-oembed-align 속성을 토글한다.
-   글 본문에 박제된 뒤에도 같은 셀렉터로 보기 페이지에 동일 적용. 좌측은
-   속성 미설정이 곧 기본값이라 별도 셀렉터가 없다.
+  /* wrapper 정렬 — CKEditor 의 좌/중/우 Justify 명령이 _ckeditor.js 의
+     beforeCommandExec 훅에서 가로채져 data-oembed-align 속성을 토글한다.
+     글 본문에 박제된 뒤에도 같은 셀렉터로 보기 페이지에 동일 적용. 좌측은
+     속성 미설정이 곧 기본값이라 별도 셀렉터가 없다.
 
-   width: fit-content 가 필수. wrapper 가 display:block 이라 부모 폭을
-   100% 채우면 좌우 auto margin 이 시각적으로 무의미해진다. 자식 컨텐츠
-   폭으로 수축돼야 가운데/우측 정렬이 보인다. max-width:100% 는 fit-content
-   가 attribute width(YouTube iframe width="560" 등) 로 잡힐 때 좁은
-   viewport 에서 wrapper 가 화면 밖으로 새는 것을 막는다. */
-div[editor_component="oembed"][data-oembed-align="center"] {
-  margin-left: auto;
-  margin-right: auto;
-  width: fit-content;
-  max-width: 100%;
-}
+     width: fit-content 가 필수. wrapper 가 display:block 이라 부모 폭을
+     100% 채우면 좌우 auto margin 이 시각적으로 무의미해진다. 자식 컨텐츠
+     폭으로 수축돼야 가운데/우측 정렬이 보인다. max-width:100% 는 fit-content
+     가 attribute width(YouTube iframe width="560" 등) 로 잡힐 때 좁은
+     viewport 에서 wrapper 가 화면 밖으로 새는 것을 막는다. */
+  &[data-oembed-align="center"] {
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+    max-width: 100%;
+  }
 
-div[editor_component="oembed"][data-oembed-align="right"] {
-  margin-left: auto;
-  margin-right: 0;
-  width: fit-content;
-  max-width: 100%;
+  &[data-oembed-align="right"] {
+    margin-left: auto;
+    margin-right: 0;
+    width: fit-content;
+    max-width: 100%;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -56,75 +56,75 @@ div[editor_component="oembed"][data-oembed-align="right"] {
   border-radius: 6px;
   overflow: hidden;
   background: #fff;
-}
 
-.preview_card_wrapper .preview_card_link {
-  display: flex;
-  align-items: stretch;
-  text-decoration: none;
-  color: inherit;
-}
+  .preview_card_link {
+    display: flex;
+    align-items: stretch;
+    text-decoration: none;
+    color: inherit;
 
-/* preview always emits <img> as a direct child of .preview_card_link */
-.preview_card_wrapper .preview_card_link > img {
-  flex: 0 0 33%;
-  width: 33%;
-  max-width: 33%;
-  height: auto;
-  object-fit: cover;
-  align-self: stretch;
-  min-height: 100px;
-  background: #f5f5f5;
-}
-
-/* legacy <div class="preview_card_image" style="background-image:..."> support */
-.preview_card_wrapper .preview_card_image {
-  flex: 0 0 33%;
-  background-size: cover;
-  background-position: center;
-  min-height: 100px;
-}
-
-.preview_card_wrapper .preview_card_text_container {
-  flex: 1 1 auto;
-  padding: 12px 16px;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.preview_card_wrapper .preview_card_title {
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.preview_card_wrapper .preview_card_desc {
-  font-size: 0.92em;
-  color: #555;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.preview_card_wrapper .preview_card_host {
-  font-size: 0.8em;
-  color: #888;
-}
-
-@media (max-width: 600px) {
-  .preview_card_wrapper .preview_card_link {
-    flex-direction: column;
+    /* preview always emits <img> as a direct child of .preview_card_link */
+    > img {
+      flex: 0 0 33%;
+      width: 33%;
+      max-width: 33%;
+      height: auto;
+      object-fit: cover;
+      align-self: stretch;
+      min-height: 100px;
+      background: #f5f5f5;
+    }
   }
-  .preview_card_wrapper .preview_card_link > img,
-  .preview_card_wrapper .preview_card_image {
-    flex: 0 0 auto;
-    width: 100%;
-    max-width: 100%;
-    min-height: 160px;
+
+  /* legacy <div class="preview_card_image" style="background-image:..."> support */
+  .preview_card_image {
+    flex: 0 0 33%;
+    background-size: cover;
+    background-position: center;
+    min-height: 100px;
+  }
+
+  .preview_card_text_container {
+    flex: 1 1 auto;
+    padding: 12px 16px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .preview_card_title {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .preview_card_desc {
+    font-size: 0.92em;
+    color: #555;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .preview_card_host {
+    font-size: 0.8em;
+    color: #888;
+  }
+
+  @media (max-width: 600px) {
+    .preview_card_link {
+      flex-direction: column;
+    }
+    .preview_card_link > img,
+    .preview_card_image {
+      flex: 0 0 auto;
+      width: 100%;
+      max-width: 100%;
+      min-height: 160px;
+    }
   }
 }
 
@@ -138,13 +138,13 @@ div[editor_component="oembed"][data-oembed-align="right"] {
   position: relative;
   margin: 1em 0;
   max-width: 100%;
-}
 
-.media_embed_wrapper iframe,
-.media_embed_wrapper video,
-.media_embed_wrapper img {
-  max-width: 100%;
-  border: 0;
+  iframe,
+  video,
+  img {
+    max-width: 100%;
+    border: 0;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
