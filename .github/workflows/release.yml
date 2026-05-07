@@ -3,6 +3,12 @@ name: Release Bundle
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to bundle (e.g. 1.0.0 or v1.0.0)"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -11,11 +17,11 @@ jobs:
   bundle:
     runs-on: ubuntu-latest
     env:
-      TAG: ${{ github.event.release.tag_name }}
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
 
       - name: Stage module under oembed/
         run: |
