@@ -69,7 +69,8 @@ Rules:
 External calls **must go through `Models\RemoteFetcher`**. Direct `HTTP::get` / `file_get_contents` is forbidden.
 
 - `RemoteFetcher::isUrlSafe()` — http/https only; blocks localhost / `*.localhost` / RFC1918 / link-local / `169.254.169.254` (AWS metadata) / `fd00:ec2::254`. The host is resolved via `dns_get_record(A|AAAA)` and every returned IP must be public.
-- The `on_redirect` callback re-runs the same check on every hop — the check cannot be bypassed.
+- The validated IP set from that lookup is **pinned to the cURL handle via `CURLOPT_RESOLVE`** (one entry per IP, `host:port:ip`, IPv6 bracketed). Without this, cURL would do a separate connect-time DNS lookup that an attacker-controlled authoritative DNS could answer with `127.0.0.1` / RFC1918 / `169.254.169.254` even though the validation lookup returned a public IP — a classic DNS-rebinding TOCTOU SSRF bypass. The pin makes cURL skip the second lookup entirely and connect to one of the IPs the guard already cleared. The validated IP list is plumbed via `inspectUrl()` → `buildResolveEntries()`; public `isUrlSafe()` / `isHostSafe()` keep their boolean signatures for compat.
+- The `on_redirect` callback only allows redirects whose **`(host, port)` tuple is identical to the first hop**. A `CURLOPT_RESOLVE` entry only applies to the exact `host:port` it was registered for, so any change — cross-host *or* same-host different-port (including http→https upgrade across 80↔443) — would resolve unpinned at connect time and re-introduce the same TOCTOU. Both are blocked. Same-origin redirects keep working because cURL reuses the same handle's resolve cache.
 - Limits: 3-second timeout, 5 redirects max, HTML 2 MB (truncated when exceeded), images 5 MB (rejected when exceeded — returns `null`), URL 2048 chars.
 - All failures return `null`. Callers fall back gracefully.
 

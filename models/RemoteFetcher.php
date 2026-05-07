@@ -70,7 +70,7 @@ class RemoteFetcher
     ], [], [
       'timeout' => self::TIMEOUT_SECONDS,
       'connect_timeout' => self::TIMEOUT_SECONDS,
-      'allow_redirects' => self::redirectOptions($info['host']),
+      'allow_redirects' => self::redirectOptions($info['host'], $info['port']),
       'curl' => [CURLOPT_RESOLVE => self::buildResolveEntries($info['host'], $info['port'], $info['ips'])],
     ]);
 
@@ -117,7 +117,7 @@ class RemoteFetcher
     ], [], [
       'timeout' => self::TIMEOUT_SECONDS,
       'connect_timeout' => self::TIMEOUT_SECONDS,
-      'allow_redirects' => self::redirectOptions($info['host']),
+      'allow_redirects' => self::redirectOptions($info['host'], $info['port']),
       'curl' => [CURLOPT_RESOLVE => self::buildResolveEntries($info['host'], $info['port'], $info['ips'])],
     ]);
 
@@ -152,7 +152,7 @@ class RemoteFetcher
     ], [], [
       'timeout' => self::TIMEOUT_SECONDS,
       'connect_timeout' => self::TIMEOUT_SECONDS,
-      'allow_redirects' => self::redirectOptions($info['host']),
+      'allow_redirects' => self::redirectOptions($info['host'], $info['port']),
       'curl' => [CURLOPT_RESOLVE => self::buildResolveEntries($info['host'], $info['port'], $info['ips'])],
     ]);
 
@@ -280,26 +280,36 @@ class RemoteFetcher
   /**
    * Guzzle 의 allow_redirects payload 를 만든다.
    *
-   * `$expectedHost` 는 첫 hop 의 호스트로, on_redirect 콜백이 cross-host
-   * redirect 를 차단하는 데 쓴다. 첫 hop 에서 박은 CURLOPT_RESOLVE 매핑은
-   * 그 호스트 한정이라, 다른 호스트로 가는 redirect 는 IP-pin 없이 새로
-   * resolve 가 일어나 동일한 TOCTOU 가 다시 노출된다. 같은 호스트 redirect
-   * 는 cURL 이 같은 핸들의 resolve 캐시를 재사용하므로 IP-pin 이 그대로
-   * 유효.
+   * `$expectedHost` / `$expectedPort` 는 첫 hop 의 origin 으로, on_redirect
+   * 콜백이 cross-origin redirect 를 차단하는 데 쓴다. 첫 hop 에서 박은
+   * CURLOPT_RESOLVE 매핑은 정확히 `(host, port)` 한 쌍에만 적용된다 —
+   * 호스트가 같아도 port 가 다르면(예: 80→8080, http→https 업그레이드로
+   * 인한 80↔443) 그 새 origin 은 IP-pin 없이 connect-time 에 새 DNS
+   * resolve 가 일어나 동일한 TOCTOU 가 다시 노출된다. 따라서 host 와 port
+   * 둘 다 첫 hop 과 동일해야만 redirect 를 허용한다.
+   *
+   * 같은 origin 안의 redirect 는 cURL 이 같은 핸들의 resolve 캐시를
+   * 재사용하므로 IP-pin 이 그대로 유효.
    *
    * @return array<string,mixed>
    */
-  private static function redirectOptions(string $expectedHost): array
+  private static function redirectOptions(string $expectedHost, int $expectedPort): array
   {
     return [
       'max' => self::MAX_REDIRECTS,
       'strict' => true,
       'protocols' => ['http', 'https'],
       'track_redirects' => true,
-      'on_redirect' => static function ($request, $response, $uri) use ($expectedHost) {
+      'on_redirect' => static function ($request, $response, $uri) use ($expectedHost, $expectedPort) {
         $host = strtolower($uri->getHost());
-        if ($host !== $expectedHost) {
-          throw new \RuntimeException('oembed: cross-host redirect blocked');
+        // PSR UriInterface::getPort() 는 명시 안 됐을 때 null 반환 → scheme
+        // 기본값으로 폴백한다.
+        $port = $uri->getPort();
+        if ($port === null) {
+          $port = strtolower($uri->getScheme()) === 'https' ? 443 : 80;
+        }
+        if ($host !== $expectedHost || (int) $port !== $expectedPort) {
+          throw new \RuntimeException('oembed: cross-origin redirect blocked');
         }
         if (self::resolveHostSafely($host) === null) {
           throw new \RuntimeException('oembed: redirect blocked (unsafe host)');
