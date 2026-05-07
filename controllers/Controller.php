@@ -52,7 +52,12 @@ class Controller extends Base
 
       $embedHtml = $provider->buildEmbed($matchData, $resolvedWidth, $resolvedHeight);
       if ($embedHtml === '') {
+        // provider 매칭은 성공했는데 buildEmbed 가 빈 문자열을 돌려주는 케이스
+        // (예: Facebook share 단축 URL 의 redirect resolve 가 transient 로 실패).
+        // 호스트 자체는 알려진 provider 가 처리하는 도메인이므로 transient 로 보고,
+        // JS 가 failed_hosts 에 등록하지 않도록 provider 식별자를 함께 내려보낸다.
         $this->add('kind', 'fail');
+        $this->add('provider', $this->shortName($provider));
         return;
       }
 
