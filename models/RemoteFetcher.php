@@ -256,7 +256,19 @@ class RemoteFetcher
     }
     $ips = [];
     foreach ($records as $record) {
-      $ip = $record['ip'] ?? ($record['ipv6'] ?? '');
+      // dns_get_record 는 DNS_A|DNS_AAAA 로 질의해도 시스템 리졸버/DNS 서버에
+      // 따라 CNAME 같은 비-주소 레코드를 결과에 함께 담을 수 있다 (특히
+      // www.youtube.com 처럼 CNAME 으로 시작하는 호스트). 무조건 ip 필드를
+      // 기대하면 CNAME 레코드에서 빈 문자열을 만나 호스트 전체가 unsafe 로
+      // 오판된다. A/AAAA 만 추려서 검증하고 그 외 레코드는 건너뛴다.
+      $type = $record['type'] ?? '';
+      if ($type === 'A') {
+        $ip = $record['ip'] ?? '';
+      } elseif ($type === 'AAAA') {
+        $ip = $record['ipv6'] ?? '';
+      } else {
+        continue;
+      }
       if ($ip === '' || !self::isPublicIp($ip)) {
         return null;
       }
