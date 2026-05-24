@@ -64,7 +64,7 @@ class EventHandlers extends Base
       return;
     }
 
-    $modulePath = '/modules/oembed/';
+    $modulePath = './modules/oembed/';
     $skin = ConfigModel::getSkin();
     $skinCssPath = $modulePath . 'skins/' . $skin . '/card.css';
 
