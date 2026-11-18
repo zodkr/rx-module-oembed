@@ -65,6 +65,31 @@ class Config
   }
 
   /**
+   * v1.0.4 이하가 남긴 `editor_component="oembed"` wrapper 를 렌더 전에
+   * 정규화할지 여부 (LegacyWrapper / EventHandlers 참고).
+   *
+   * 이전 버전에서 업데이트한 사이트에서만 켜진다. 값은 Install 이 한 번
+   * 결정해 `legacy_wrappers` 키 ('Y' / 'N') 로 저장한다 — 신규 설치는 'N'.
+   * 트리거 등록 자체를 조건부로 할 수는 없어서 (conf/module.xml 에 없는
+   * 트리거는 코어가 "업데이트 필요" 로 표시하고 업데이트 때 삭제한다),
+   * 핸들러가 이 값을 보고 바로 빠져나가는 방식으로 게이팅한다.
+   *
+   * 키가 아직 없으면 켜진 것으로 본다. 키 없이 이 핸들러가 불리는 경우는
+   * "legacy 트리거는 이미 등록됐는데 판정 전" 인 사이트뿐이고 (판정 로직이
+   * 생기기 전 커밋으로 업데이트한 사이트), 그런 사이트는 전부 업데이트한
+   * 사이트다. 신규 설치는 트리거가 등록되는 바로 그 업데이트에서 판정도
+   * 함께 끝나므로 키 없는 상태로 핸들러가 불리지 않는다.
+   *
+   * getConfig() 에서 이 키의 기본값을 채우지 않는 이유: getConfig() 가 돌려주는
+   * 객체는 ModuleModel 의 설정 캐시와 같은 인스턴스라, 기본값을 채우면
+   * Install 의 "아직 판정 전인가" 검사 (isset) 가 깨진다.
+   */
+  public static function shouldNormalizeLegacyWrappers(): bool
+  {
+    return (self::getConfig()->legacy_wrappers ?? 'Y') !== 'N';
+  }
+
+  /**
    * 현재 활성 카드 스킨 이름. CardRenderer 와 EventHandlers 가 공유한다.
    * 운영자가 어드민에서 선택한 스킨이 실제 디렉터리에 없으면 'default' 폴백.
    */

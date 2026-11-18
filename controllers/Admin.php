@@ -67,6 +67,9 @@ class Admin extends Base
 
     if ($screen === 'config') {
       $config->compatible_mode = (($vars->compatible_mode ?? 'N') === 'Y') ? 'Y' : 'N';
+      // Install 의 자동 판정을 운영자가 뒤집을 수 있게 한다 (예: 신규 설치
+      // 사이트에 이전 버전 시절 게시물을 이관해 온 경우).
+      $config->legacy_wrappers = (($vars->legacy_wrappers ?? 'N') === 'Y') ? 'Y' : 'N';
       $skin = trim((string) ($vars->skin ?? ''));
       if ($skin !== '' && is_dir($this->module_path . 'skins/' . $skin)) {
         $config->skin = $skin;

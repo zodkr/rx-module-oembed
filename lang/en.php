@@ -10,6 +10,9 @@ $lang->oembed_skin_desc = 'Controls the design of preview cards. New skins place
 $lang->oembed_compatible_mode = 'Preview module compatibility';
 $lang->oembed_compatible_mode_desc = 'Keeps cards and embeds authored under the preview module rendering correctly. Adds compatible styles and a post-processing script (auto-loading Instagram / Facebook / X SDKs and activating lazy iframes) on post-view pages so that legacy <code>preview_card_*</code> / <code>media_embed_wrapper</code> markup keeps its original look. Safe to turn off on a new site that has never used preview.';
 
+$lang->oembed_legacy_wrappers = 'Compatibility with posts from earlier versions';
+$lang->oembed_legacy_wrappers_desc = 'Shows embeds and cards in posts and comments written with oEmbed 1.0.4 or earlier, whose body still carries the <code>editor_component="oembed"</code> attribute. Recent Rhymix versions blank any tag with that attribute at output, so when this is on the attribute is removed just before rendering (the stored body is not modified). Turned on automatically for sites updated from an earlier version; new installs start with it off.';
+
 $lang->oembed_provider_name = 'Provider';
 $lang->oembed_provider_type = 'Type';
 $lang->oembed_provider_oembed = 'oEmbed';

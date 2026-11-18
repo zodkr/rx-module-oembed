@@ -169,6 +169,11 @@ class EventHandlers extends Base
    */
   public function normalizeLegacyWrappers($oModule = null)
   {
+    // 이전 버전에서 업데이트한 사이트에서만 동작한다 (신규 설치엔 legacy
+    // 본문이 없다). 판정은 ConfigModel::shouldNormalizeLegacyWrappers 참고.
+    if (!ConfigModel::shouldNormalizeLegacyWrappers()) {
+      return;
+    }
     // 코어의 태그 제거는 HTML 응답에서만 일어난다.
     if (Context::getResponseMethod() !== 'HTML') {
       return;
@@ -211,6 +216,9 @@ class EventHandlers extends Base
    */
   public function normalizeLegacyCommentList(&$output)
   {
+    if (!ConfigModel::shouldNormalizeLegacyWrappers()) {
+      return;
+    }
     if (!is_object($output) || empty($output->data) || !is_array($output->data)) {
       return;
     }

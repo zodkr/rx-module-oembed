@@ -10,6 +10,9 @@ $lang->oembed_skin_desc = '미리보기 카드의 디자인을 결정합니다. 
 $lang->oembed_compatible_mode = 'preview 모듈 호환';
 $lang->oembed_compatible_mode_desc = 'preview 모듈로 작성해 두었던 기존 게시물의 카드와 임베드를 그대로 표시합니다. 본문에 저장된 <code>preview_card_*</code>·<code>media_embed_wrapper</code> 마크업이 같은 모양으로 보이도록 게시물 읽기 화면에서 호환 스타일과 후처리 스크립트(인스타그램·페이스북·X SDK 자동 로드, lazy iframe 활성화) 를 함께 적용합니다. preview 모듈을 사용한 적 없는 새 사이트라면 꺼두셔도 됩니다.';
 
+$lang->oembed_legacy_wrappers = '이전 버전 게시물 호환';
+$lang->oembed_legacy_wrappers_desc = 'oEmbed 1.0.4 이하에서 작성되어 본문에 <code>editor_component="oembed"</code> 속성이 남아 있는 게시물·댓글의 임베드와 카드를 표시합니다. 최신 Rhymix 는 이 속성이 붙은 태그를 출력 시 비우기 때문에, 켜 두면 화면에 그리기 직전에 속성을 떼어 냅니다 (DB 의 본문은 수정하지 않습니다). 이전 버전에서 업데이트한 사이트는 자동으로 켜지고, 새로 설치한 사이트는 꺼진 상태로 시작합니다.';
+
 $lang->oembed_provider_name = 'Provider';
 $lang->oembed_provider_type = '유형';
 $lang->oembed_provider_oembed = 'oEmbed';

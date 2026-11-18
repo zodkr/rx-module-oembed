@@ -53,6 +53,15 @@
       </label>
       <p class="oembed-help">{!! $lang->oembed_compatible_mode_desc !!}</p>
     </div>
+
+    <div class="oembed-row">
+      <label class="oembed-checkbox">
+        <input type="checkbox" name="legacy_wrappers" value="Y"
+               {{ ($oembed_config->legacy_wrappers ?? 'Y') === 'Y' ? 'checked' : '' }} />
+        <span>{{ $lang->oembed_legacy_wrappers }}</span>
+      </label>
+      <p class="oembed-help">{!! $lang->oembed_legacy_wrappers_desc !!}</p>
+    </div>
   </div>
 
   <div class="btnArea x_clearfix">
