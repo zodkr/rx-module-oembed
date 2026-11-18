@@ -7,6 +7,10 @@
     <action name="dispOembedAdminProviders" class="Controllers\Admin" />
     <action name="procOembedAdminInsertConfig" class="Controllers\Admin" />
     <action name="procOembedAdminRefreshProviders" class="Controllers\Admin" />
+    <!-- 이전 버전 본문 정리 — 게시물/댓글 본문을 DB 에서 직접 고치는 도구라
+         최고 관리자만 쓸 수 있게 명시한다 (Admin 쪽에서도 다시 확인한다). -->
+    <action name="dispOembedAdminCleanup" class="Controllers\Admin" permission="root" />
+    <action name="procOembedAdminCleanupLegacy" class="Controllers\Admin" permission="root" />
 
     <!-- 페이스트 시 호출되는 메인 API -->
     <action name="procOembedFetch" class="Controllers\Controller" standalone="true" meta-noindex="true" />

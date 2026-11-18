@@ -3,7 +3,9 @@
 namespace Rhymix\Modules\Oembed\Controllers;
 
 use Rhymix\Framework\Filters\MediaFilter;
+use Rhymix\Framework\Session;
 use Rhymix\Modules\Oembed\Models\Config as ConfigModel;
+use Rhymix\Modules\Oembed\Models\LegacyCleaner;
 use Rhymix\Modules\Oembed\Models\Registry;
 use Context;
 use ModuleModel;
@@ -53,6 +55,72 @@ class Admin extends Base
     Context::set('oembed_host_whitelist', $hostStatus);
     Context::set('oembed_missing_hosts', array_keys($missingHosts));
     $this->setTemplateFile('providers');
+  }
+
+  /**
+   * 이전 버전 본문 정리 화면. 실제 작업은 화면의 스크립트
+   * (tpl/js/_admin_cleanup.js) 가 procOembedAdminCleanupLegacy 를 반복 호출해
+   * 진행한다.
+   */
+  public function dispOembedAdminCleanup()
+  {
+    if (!$this->user->isAdmin()) {
+      return new \BaseObject(-1, 'admin.msg_is_not_administrator');
+    }
+    Context::set('oembed_cleanup_targets', LegacyCleaner::getTargets());
+    Context::loadFile(array('./modules/oembed/tpl/js/_admin_cleanup.js', 'body', '', null), true);
+    $this->setTemplateFile('cleanup');
+  }
+
+  /**
+   * 게시물 / 댓글 본문에서 legacy wrapper 의 editor_component 속성을 DB 에서
+   * 제거한다. 한 번 호출이 처리하는 양은 LegacyCleaner::run 의 시간 예산만큼
+   * 이고, 응답의 cursor 를 다음 호출에 넘겨 이어 간다.
+   *
+   *   step=init → 대상별 전체 행 수 (진행률 분모)
+   *   step=run  → target, cursor 를 받아 한 묶음 처리
+   *
+   * confirm_backup=Y 가 없으면 거부한다. 화면의 체크박스가 같은 값을 보내며,
+   * 서버에서도 확인해 두면 백업 경고를 건너뛴 직접 호출로는 실행되지 않는다.
+   */
+  public function procOembedAdminCleanupLegacy()
+  {
+    Context::setResponseMethod('JSON');
+    if (!$this->user->isAdmin()) {
+      return new \BaseObject(-1, 'admin.msg_is_not_administrator');
+    }
+    if (Context::get('confirm_backup') !== 'Y') {
+      return new \BaseObject(-1, 'msg_oembed_cleanup_confirm_required');
+    }
+
+    // 요청이 연달아 이어지는 동안 세션 잠금을 쥐고 있으면 같은 관리자의 다른
+    // 탭이 전부 대기하게 된다. 코어의 모듈 업데이트와 같은 방식으로 풀어 둔다.
+    Session::close();
+    try {
+      $step = (string) Context::get('step');
+      if ($step === 'init') {
+        $totals = [];
+        foreach (LegacyCleaner::getTargets() as $target) {
+          $totals[$target] = LegacyCleaner::countRows($target);
+        }
+        $this->add('totals', $totals);
+      } elseif ($step === 'run') {
+        $target = (string) Context::get('target');
+        if (!LegacyCleaner::isTarget($target)) {
+          return new \BaseObject(-1, 'msg_invalid_request');
+        }
+        foreach (LegacyCleaner::run($target, (int) Context::get('cursor')) as $key => $value) {
+          $this->add($key, $value);
+        }
+        $this->add('target', $target);
+      } else {
+        return new \BaseObject(-1, 'msg_invalid_request');
+      }
+    } catch (\Exception $e) {
+      return new \BaseObject(-1, $e->getMessage());
+    } finally {
+      Session::start();
+    }
   }
 
   public function procOembedAdminInsertConfig()

@@ -3,6 +3,7 @@
 $lang->cmd_oembed = 'oEmbed';
 $lang->cmd_oembed_general_config = 'General';
 $lang->cmd_oembed_providers = 'Providers';
+$lang->cmd_oembed_cleanup = 'Legacy cleanup';
 
 $lang->oembed_skin = 'Card skin';
 $lang->oembed_skin_desc = 'Controls the design of preview cards. New skins placed under modules/oembed/skins/ are picked up automatically. Switching skins applies to newly created cards only — existing cards keep their original look.';
@@ -12,6 +13,29 @@ $lang->oembed_compatible_mode_desc = 'Keeps cards and embeds authored under the 
 
 $lang->oembed_legacy_wrappers = 'Compatibility with posts from earlier versions';
 $lang->oembed_legacy_wrappers_desc = 'Shows embeds and cards in posts and comments written with oEmbed 1.0.4 or earlier, whose body still carries the <code>editor_component="oembed"</code> attribute. Recent Rhymix versions blank any tag with that attribute at output, so when this is on the attribute is removed just before rendering (the stored body is not modified). Turned on automatically for sites updated from an earlier version; new installs start with it off.';
+
+$lang->oembed_cleanup_intro = 'Permanently removes the <code>editor_component="oembed"</code> attribute left in the bodies of posts and comments written with oEmbed 1.0.4 or earlier. Once the cleanup is finished, those embeds and cards render without the <em>Compatibility with posts from earlier versions</em> option.';
+$lang->oembed_cleanup_warning_title = 'Back up your database before running this';
+$lang->oembed_cleanup_warning_body = '<ul><li>This rewrites post (<code>documents</code>) and comment (<code>comments</code>) bodies directly in the database and <strong>cannot be undone.</strong></li><li>On a site with many posts and comments it <strong>can take a long time.</strong> Do not close this window or navigate away while it is running.</li><li>An error, an interruption or a server problem during the run <strong>can damage or lose post bodies.</strong> A backup is the only way to recover from that, so running this only after a backup is strongly recommended.</li><li>Run it during low-traffic hours if you can.</li></ul>';
+$lang->oembed_cleanup_confirm = 'I have backed up the database and read the notes above.';
+$lang->oembed_cleanup_start = 'Start cleanup';
+$lang->oembed_cleanup_resume = 'Continue';
+$lang->oembed_cleanup_stop = 'Stop';
+$lang->oembed_cleanup_target_documents = 'Posts';
+$lang->oembed_cleanup_target_comments = 'Comments';
+$lang->oembed_cleanup_col_target = 'Target';
+$lang->oembed_cleanup_col_total = 'Total';
+$lang->oembed_cleanup_col_scanned = 'Scanned';
+$lang->oembed_cleanup_col_updated = 'Updated';
+$lang->oembed_cleanup_col_skipped = 'Held';
+$lang->oembed_cleanup_skipped_help = 'Held items needed cleaning but were left untouched because they failed the safety check or changed while the cleanup was running. Running the cleanup again retries them.';
+$lang->oembed_cleanup_status_preparing = 'Counting rows…';
+$lang->oembed_cleanup_status_running = 'Cleaning up. Do not close this window.';
+$lang->oembed_cleanup_status_stopping = 'Stopping after the current batch…';
+$lang->oembed_cleanup_status_stopped = 'Stopped. Press Continue to pick up where it left off.';
+$lang->oembed_cleanup_status_done = 'Cleanup finished. If nothing was held, you can turn off Compatibility with posts from earlier versions in the General tab.';
+$lang->oembed_cleanup_status_error = 'Stopped because of an error. Press Continue to retry from where it stopped.';
+$lang->msg_oembed_cleanup_confirm_required = 'Confirm that you have backed up the database before running this.';
 
 $lang->oembed_provider_name = 'Provider';
 $lang->oembed_provider_type = 'Type';

@@ -9,6 +9,9 @@
   <li @class(['x_active' => $act === 'dispOembedAdminProviders'])>
     <a href="{{ getUrl('', 'module', 'admin', 'act', 'dispOembedAdminProviders') }}">{{ $lang->cmd_oembed_providers }}</a>
   </li>
+  <li @class(['x_active' => $act === 'dispOembedAdminCleanup'])>
+    <a href="{{ getUrl('', 'module', 'admin', 'act', 'dispOembedAdminCleanup') }}">{{ $lang->cmd_oembed_cleanup }}</a>
+  </li>
 </ul>
 
 @if (!empty($oembed_preview_active) || !empty($oembed_preview_conflict))
