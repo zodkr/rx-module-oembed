@@ -48,9 +48,20 @@ class LegacyWrapper
 
     // wrapper 는 항상 div 다. `<img editor_component="oembed">` 는 이 모듈이
     // 만든 적이 없으므로 건드리지 않고 코어 처리에 맡긴다.
+    //
+    // 여는 태그의 끝은 따옴표를 인식해서 찾는다. `[^>]*` 로 자르면 속성값
+    // 안의 `>` 를 태그 끝으로 오인해, 값의 나머지 (브라우저에겐 그냥 속성
+    // 텍스트) 가 재조립된 태그 뒤에 살아 있는 마크업으로 풀려난다. 필터를
+    // 거친 본문은 값 안의 `>` 가 `&gt;` 로 이스케이프돼 있지만, 필터를 거치지
+    // 않은 본문 (관리자 작성·이관 데이터) 까지 같은 가정을 하지는 않는다.
+    // 소유(possessive) 수량자라 닫히지 않은 따옴표를 만나도 역추적하지 않고
+    // 매칭 실패로 끝난다 — 그 태그는 손대지 않고 코어 처리에 맡긴다.
     $result = preg_replace_callback(
-      '~<div(\s[^>]*\b' . self::MARKER . '\s*=[^>]*)>~i',
+      '~<div(?=[\s/>])((?:[^>"\']++|"[^"]*+"|\'[^\']*+\')*+)>~i',
       static function (array $match): string {
+        if (stripos($match[1], self::MARKER) === false) {
+          return $match[0];
+        }
         $attrs = self::parseAttributes($match[1]);
         if (($attrs[self::MARKER] ?? null) !== 'oembed') {
           return $match[0];
@@ -58,7 +69,7 @@ class LegacyWrapper
         $kept = [];
         foreach ($attrs as $name => $value) {
           if (preg_match(self::SAFE_ATTRIBUTE_REGEX, $name)) {
-            $kept[] = $name . '="' . str_replace('"', '&quot;', $value) . '"';
+            $kept[] = $name . '="' . self::encodeValue($value) . '"';
           }
         }
         return '<div' . ($kept === [] ? '' : ' ' . implode(' ', $kept)) . '>';
@@ -92,6 +103,22 @@ class LegacyWrapper
     if ($item instanceof \CommentItem && property_exists($item, 'content')) {
       $item->content = $normalized;
     }
+  }
+
+  /**
+   * 유지하는 속성값을 디코드 후 다시 인코드해 `< > " ' &` 가 전부 엔티티로
+   * 나가게 한다. 이미 인코드된 값은 왕복해도 그대로이고 (`&amp;` → `&` →
+   * `&amp;`), 날것으로 들어 있던 `>` / `<` 는 여기서 무해화된다 — 코어의
+   * 후속 정규식 (`[^>]*` 기반) 이 재조립된 태그를 잘못 자르지 않게 하는
+   * 목적도 있다.
+   */
+  private static function encodeValue(string $value): string
+  {
+    return htmlspecialchars(
+      html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+      ENT_QUOTES | ENT_SUBSTITUTE,
+      'UTF-8'
+    );
   }
 
   /**
