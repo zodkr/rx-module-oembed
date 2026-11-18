@@ -79,13 +79,17 @@ class Controller extends Base
       }
 
       $providerShort = $this->shortName($provider);
+      // wrapper 식별자는 data-oembed-type 이다. editor_component="oembed" 는
+      // 붙이지 않는다 — 등록된 에디터 컴포넌트가 아니라서 코어가 저장 시
+      // 속성을 지우고, 남아 있으면 출력 시 태그째 비운다 (LegacyWrapper 참고).
+      //
       // wrapper 의 data-oembed-file-srl 은 EventHandlers::pruneOrphanedOembedFiles
       // 가 본문 저장 시점에 첨부를 보존하기 위한 anchor — 빠지면 고아로 회수된다.
       $fileSrlAttr = $attachedFileSrl > 0
         ? sprintf(' data-oembed-file-srl="%d"', $attachedFileSrl)
         : '';
       $wrappedHtml = sprintf(
-        '<div editor_component="oembed" data-oembed-type="%s" data-oembed-provider="%s" data-url="%s"%s contenteditable="false">%s</div>',
+        '<div data-oembed-type="%s" data-oembed-provider="%s" data-url="%s"%s contenteditable="false">%s</div>',
         htmlspecialchars($type, ENT_QUOTES, 'UTF-8'),
         htmlspecialchars($providerShort, ENT_QUOTES, 'UTF-8'),
         htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
@@ -143,7 +147,7 @@ class Controller extends Base
       ? sprintf(' data-oembed-file-srl="%d"', $attachedFileSrl)
       : '';
     $wrappedHtml = sprintf(
-      '<div editor_component="oembed" data-oembed-type="card" data-url="%s"%s contenteditable="false">%s</div>',
+      '<div data-oembed-type="card" data-url="%s"%s contenteditable="false">%s</div>',
       htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
       $fileSrlAttr,
       $cardHtml

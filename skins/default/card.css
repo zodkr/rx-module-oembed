@@ -3,7 +3,7 @@
    class 가 아닌 tag selector + nested CSS 로 작성한다. HTMLPurifier 가 본문
    저장 단계에서 class 를 자유롭게 보존해 주지 않으므로 카드 markup 에 class 를
    박아 두면 view 페이지에서 스타일이 사라진다. 카드 식별은 wrapper 의
-   editor_component 속성(HTMLPurifier attr 화이트리스트에 등록되어 살아남음)으로
+   data-oembed-type="card" 속성(Rhymix HTMLFilter 가 div 의 data-* 를 보존)으로
    수행한다.
    ───────────────────────────────────────────────────────────────────────── */
 body div[data-oembed-type="card"] > figure {

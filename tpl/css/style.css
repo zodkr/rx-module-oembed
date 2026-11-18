@@ -1,7 +1,11 @@
 /* ─────────────────────────────────────────────────────────────────────────
    oembed inline wrapper (iframe / blockquote / images)
+
+   wrapper 식별자는 data-oembed-type 이다 (Controller 가 모든 wrapper 에
+   붙인다). editor_component="oembed" 는 Rhymix 코어가 저장 시 제거하므로
+   셀렉터로 쓰지 않는다.
    ───────────────────────────────────────────────────────────────────────── */
-div[editor_component="oembed"] {
+div[data-oembed-type] {
   display: block;
   position: relative;
   margin: 1em 0;
@@ -191,7 +195,7 @@ div[editor_component="oembed"] {
 .rhymix_content.cke_editable,
 .cke_wysiwyg_div {
   /* 모든 타입 공통 — 위젯 상호작용 보호 */
-  [editor_component="oembed"] {
+  [data-oembed-type] {
     user-select: none;
 
     iframe,
@@ -201,7 +205,7 @@ div[editor_component="oembed"] {
   }
 
   /* social 타입 — 블록 프레임 + provider 라벨 */
-  [editor_component="oembed"][data-oembed-type="social"] {
+  [data-oembed-type="social"] {
     position: relative;
     margin: 1em 0;
     padding: 0;

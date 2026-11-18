@@ -3,6 +3,7 @@
 namespace Rhymix\Modules\Oembed\Controllers;
 
 use Rhymix\Modules\Oembed\Models\Config as ConfigModel;
+use Rhymix\Modules\Oembed\Models\LegacyWrapper;
 use Rhymix\Modules\Oembed\Models\Registry;
 use Rhymix\Framework\Filters\MediaFilter;
 use BaseObject;
@@ -142,6 +143,82 @@ class EventHandlers extends Base
       json_encode($iframeWhitelist, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP)
     ));
     Context::loadFile(array($modulePath . 'tpl/js/_render.js', 'body', '', null), true);
+  }
+
+  /**
+   * before layout 트리거 — 템플릿이 렌더되기 직전에, 액션이 Context 에 올려 둔
+   * 글/댓글 객체의 legacy wrapper (`<div editor_component="oembed">`) 를
+   * 정규화한다. 변환 규칙과 배경은 Models\LegacyWrapper 참고.
+   *
+   * before display 가 아닌 before layout 인 이유: 코어의 태그 제거
+   * (EditorController::triggerEditorComponentCompile) 도 before display 에
+   * 걸려 있고, 같은 트리거 안의 실행 순서는 module 컬럼 오름차순
+   * (module.getTriggers 쿼리) 이라 editor 가 항상 oembed 보다 먼저 돈다.
+   * before display 시점엔 본문이 이미 `<div></div>` 로 비워진 뒤라 복구할
+   * 원본이 없다. before layout 은 DisplayHandler 가 템플릿 컴파일
+   * (`$handler->toDoc()`) 직전에 발사하므로, 여기서 객체의 content 를 바꿔
+   * 두면 렌더 결과에 속성이 처음부터 등장하지 않는다.
+   *
+   * Context 변수를 이름 (`oDocument` 등) 으로 고르지 않고 타입으로 훑는
+   * 이유: 변수명은 모듈·스킨마다 달라질 수 있지만 DocumentItem / CommentItem
+   * 타입은 고정이다. 목록형 스킨이 본문을 통째로 찍는 경우를 위해 배열
+   * (`document_list`, `notice_list` 등) 은 한 단계까지만 들어간다.
+   *
+   * 템플릿 렌더 도중에 지연 로드되는 댓글 목록은 이 시점에 아직 없으므로
+   * normalizeLegacyCommentList 가 따로 받는다.
+   */
+  public function normalizeLegacyWrappers($oModule = null)
+  {
+    // 코어의 태그 제거는 HTML 응답에서만 일어난다.
+    if (Context::getResponseMethod() !== 'HTML') {
+      return;
+    }
+
+    foreach (get_object_vars(Context::getAll()) as $value) {
+      if (is_object($value)) {
+        LegacyWrapper::normalizeItem($value);
+      } elseif (is_array($value)) {
+        foreach ($value as $item) {
+          if (is_object($item)) {
+            LegacyWrapper::normalizeItem($item);
+          }
+        }
+      }
+    }
+
+    // dispDocumentPreview 는 객체가 아니라 본문 문자열을 Context 에 올린다.
+    // 에디터에 legacy 본문이 로드된 채로 미리보기를 열면 속성이 그대로
+    // 넘어온다.
+    if (Context::get('act') === 'dispDocumentPreview') {
+      $content = Context::get('content');
+      if (is_string($content)) {
+        Context::set('content', LegacyWrapper::normalize($content));
+      }
+    }
+  }
+
+  /**
+   * comment.getCommentList 의 after 트리거 — 댓글 목록 row 의 legacy wrapper 를
+   * 정규화한다.
+   *
+   * 게시판 스킨은 템플릿 안에서 `$oDocument->getComments()` 로 댓글을 지연
+   * 로드하므로 before layout 시점엔 댓글 객체가 존재하지 않는다. 그 경로는
+   * 전부 CommentModel::getCommentList 를 거치고, 이 트리거는 row 가
+   * CommentItem 으로 만들어지기 전에 불리므로 여기서 한 번만 고치면 된다.
+   *
+   * 응답 형식을 가리지 않는다 — 속성을 떼는 것은 코어가 다음 저장 때 어차피
+   * 하는 일과 같아서 JSON 등 다른 응답에서도 무해하다.
+   */
+  public function normalizeLegacyCommentList(&$output)
+  {
+    if (!is_object($output) || empty($output->data) || !is_array($output->data)) {
+      return;
+    }
+    foreach ($output->data as $row) {
+      if (is_object($row) && isset($row->content) && is_string($row->content)) {
+        $row->content = LegacyWrapper::normalize($row->content);
+      }
+    }
   }
 
   /**

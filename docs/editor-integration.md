@@ -37,7 +37,7 @@ url=<붙여넣은 URL>
 // 1) provider 매칭 성공 → iframe/blockquote 임베드
 {
   "kind": "embed",
-  "wrapped_html": "<div editor_component=\"oembed\" data-url=\"...\"><iframe ...></iframe></div>",
+  "wrapped_html": "<div data-oembed-type=\"multimedia\" data-oembed-provider=\"Youtube\" data-url=\"...\" contenteditable=\"false\"><iframe ...></iframe></div>",
   "url": "https://www.youtube.com/watch?v=...",
   "provider": "Youtube"
 }
@@ -45,7 +45,7 @@ url=<붙여넣은 URL>
 // 2) provider 매칭 실패 + OG 메타 발견 → 미리보기 카드
 {
   "kind": "card",
-  "wrapped_html": "<div editor_component=\"oembed\" data-url=\"...\"><div class=\"preview_card_wrapper\" contenteditable=\"false\">...</div></div>",
+  "wrapped_html": "<div data-oembed-type=\"card\" data-url=\"...\" contenteditable=\"false\"><figure contenteditable=\"false\">...</figure></div>",
   "url": "https://example.com/article"
 }
 
@@ -53,11 +53,20 @@ url=<붙여넣은 URL>
 { "kind": "fail" }
 ```
 
-응답으로 받은 `wrapped_html` 의 `<div>` wrapper 에는 `editor_component="oembed"`
-(에디터 위젯 식별용) 와 `data-url` (참조용) 만 붙어 있습니다. 임베드 차원이나 카드
-메타 같은 정보는 안쪽 HTML 에 이미 포함되어 있으므로 wrapper 단계에서 중복으로
-가져갈 필요가 없습니다. 종류(embed/card) 와 provider 이름은 응답 JSON 의 `kind`,
-`provider` 필드에서 받습니다.
+응답으로 받은 `wrapped_html` 의 `<div>` wrapper 에는 `data-oembed-type`
+(wrapper 식별자 겸 종류 — `social` / `multimedia` / `card`), `data-url` (참조용),
+`contenteditable="false"` 가 붙어 있고, provider 매칭 임베드에는
+`data-oembed-provider`, 섬네일·OG 이미지가 첨부로 등록된 경우에는
+`data-oembed-file-srl` 이 추가됩니다. 임베드 차원이나 카드 메타 같은 정보는 안쪽
+HTML 에 이미 포함되어 있으므로 wrapper 단계에서 중복으로 가져갈 필요가 없습니다.
+종류(embed/card) 와 provider 이름은 응답 JSON 의 `kind`, `provider` 필드에서도
+받을 수 있습니다.
+
+> **`editor_component` 속성은 붙이지 마세요.** v1.0.4 까지는 wrapper 에
+> `editor_component="oembed"` 가 있었지만, `oembed` 는 Rhymix 에 등록된 에디터
+> 컴포넌트가 아니어서 최신 코어 (RVE-2026-31 패치 이후) 는 이 속성을 저장 시
+> 제거하고, 본문에 남아 있으면 출력 시 태그를 통째로 비웁니다. 통합 코드가
+> wrapper 를 찾을 때는 `[data-oembed-type]` 셀렉터를 사용하세요.
 
 ## 2. 통합 시 권장 흐름
 
@@ -98,13 +107,20 @@ placeholder 패턴을 쓰는 이유는 fetch 가 비동기이기 때문입니다
 
 ## 4. 본문 저장과 출력
 
-저장 시 본문에는 `wrapped_html` 이 통째로(`<div editor_component="oembed" data-...>`
+저장 시 본문에는 `wrapped_html` 이 통째로(`<div data-oembed-type="..." data-...>`
 와 그 안의 `<iframe>` / 카드 마크업까지) 남고, 출력 시에도 같은 마크업이 그대로
 나갑니다. 따라서 통합 코드 측에서는:
 
 - 저장 전 본문에서 oembed 마크업을 *지우거나 변형하지 마세요* — 특히 sanitizer 가
   자식 노드(`<iframe>` 등)를 떨어뜨리면 출력에서 빈 div 만 남습니다.
 - 출력 변환 로직을 따로 구현할 필요가 없습니다 — 별도 후처리가 없습니다.
+
+v1.0.4 이하에서 저장되어 `editor_component="oembed"` 가 남아 있는 본문은
+모듈이 글 보기 / 댓글 목록 렌더 직전에 현재 형태로 정규화해서 내보냅니다
+(DB 는 수정하지 않으며, 해당 글을 다시 저장하면 속성이 영구히 사라집니다).
+HTML 페이지가 아닌 경로 (JSON API 등) 로 본문을 직접 읽어 가는 통합 코드는 구
+속성이 그대로 들어 있을 수 있으므로, wrapper 판별을 `editor_component` 가 아닌
+`data-oembed-type` 으로 해야 신·구 본문을 모두 처리할 수 있습니다.
 
 대신 한 가지 한계가 있습니다: Provider 의 `buildEmbed` 결과나 카드 템플릿이
 나중에 바뀌어도 **이미 작성된 글에는 소급 반영되지 않습니다**. 본문을 다시
